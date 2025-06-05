@@ -1,0 +1,8 @@
+# @format
+---
+- name: Restart supervisor programs
+  become: true
+  command: /usr/bin/supervisorctl restart {{ item }}
+  loop:
+    - "{{ program_name_pusher }}"
+    - "{{ program_name_count }}"

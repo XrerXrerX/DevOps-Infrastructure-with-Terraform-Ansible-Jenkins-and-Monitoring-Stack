@@ -1,0 +1,9 @@
+# @format
+---
+- hosts: laravel_websocket_new
+  become: yes
+  tasks:
+    - name: pull repo
+      include_role:
+        name: laravel_ws
+        tasks_from: restart_supervisor.yml

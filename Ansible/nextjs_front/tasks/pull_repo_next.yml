@@ -1,0 +1,37 @@
+# @format
+---
+- name: Add safe Git directory
+  shell: git config --global --add safe.directory "{{ next_app_path }}"
+  become: false
+
+- name: Pull latest code from git
+  git:
+    repo: "{{ next_repo_url }}"
+    dest: "{{ next_app_path }}"
+    version: "{{ next_repo_branch }}"
+    force: yes
+    accept_hostkey: yes
+
+- name: Install node dependencies
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    npm install
+  args:
+    chdir: "{{ next_app_path }}"
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+  become: no
+
+- name: restart pm2
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    pm2 restart {{ pm2_name }}
+  args:
+    chdir: "{{ next_app_path }}"
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+  become: no

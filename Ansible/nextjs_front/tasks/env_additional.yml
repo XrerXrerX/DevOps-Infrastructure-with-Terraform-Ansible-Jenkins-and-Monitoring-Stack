@@ -1,0 +1,43 @@
+# @format
+---
+- name: Ensure REACT_APP_API_BASE_URL is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_API_BASE_URL="
+    line: 'REACT_APP_API_BASE_URL="http://{{ hostvars[groups["laravel_dashboard_new"][0]]["ansible_default_ipv4"]["address"] }}"'
+    create: yes
+
+- name: Ensure REACT_APP_COMPANY_KEY is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_COMPANY_KEY="
+    line: 'REACT_APP_COMPANY_KEY="{{ REACT_APP_COMPANY_KEY }}"'
+    create: yes
+
+- name: Ensure REACT_APP_TOKEN_VALIDATION is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_TOKEN_VALIDATION="
+    line: 'REACT_APP_TOKEN_VALIDATION="{{ TOKEN_BEARER }}"'
+    create: yes
+
+- name: Ensure REACT_APP_WS_KEY is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_WS_KEY="
+    line: 'REACT_APP_WS_KEY="{{ REACT_APP_WS_KEY }}"'
+    create: yes
+
+- name: Ensure REACT_APP_WS_PORT is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_WS_PORT="
+    line: 'REACT_APP_WS_PORT="{{ REACT_APP_WS_PORT }}"'
+    create: yes
+
+- name: Ensure REACT_APP_WS_HOST is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_WS_HOST="
+    line: 'REACT_APP_WS_HOST="{{ hostvars[groups["laravel_websocket_new"][0]]["ansible_default_ipv4"]["address"] }}"'
+    create: yes

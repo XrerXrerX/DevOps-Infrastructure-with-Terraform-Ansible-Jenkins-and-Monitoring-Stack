@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'node_exporter'
+    static_configs:
+{% for group in ['laravel_dashboard_new', 'laravel_websocket_new', 'laravel_calculator_new', 'laravel_seamless_new', 'nextjs_frontend', 'public_nginx_proxy', 'mysql_master_new', 'mysql_slave_new'] %}
+{% for host in groups[group] %}
+{% set ip = hostvars[host]['ansible_host'] | default(hostvars[host]['ansible_facts'].get('default_ipv4', {}).get('address', '')) %}
+{% if ip %}
+      - targets: ['{{ ip }}:9100']
+        labels:
+          nodename: '{{ group }}'
+{% else %}
+      # Host {{ host }} skipped: no IP address found
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['localhost:9093']
+
+rule_files:
+  - /etc/prometheus/alerts.yml

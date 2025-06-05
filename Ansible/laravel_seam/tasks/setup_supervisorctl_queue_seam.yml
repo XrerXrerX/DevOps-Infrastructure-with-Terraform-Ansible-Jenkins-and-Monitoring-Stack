@@ -1,0 +1,31 @@
+# @format
+---
+- name: lrv seam - Ensure supervisor is installed
+  apt:
+    name: supervisor
+    state: present
+    update_cache: true
+
+- name: lrv seam - Create supervisor config for reverb
+  copy:
+    dest: "/etc/supervisor/conf.d/{{ program_name_seam }}.conf"
+    content: |
+      [program:{{ program_name_seam }}]
+      command={{ supervisor_command_seam }}
+      directory={{ laravel_app_path_seam }}
+      autostart=true
+      autorestart=true
+      stderr_logfile={{ log_path_seam }}/{{ name_log_file_supervisor_seam }}.err.log
+      stdout_logfile={{ log_path_seam }}/{{ name_log_file_supervisor_seam }}.out.log
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: lrv seam - Reread supervisor config
+  command: supervisorctl reread
+
+- name: lrv seam - Update supervisor
+  command: supervisorctl update
+
+- name: lrv seam - Check supervisor status
+  command: supervisorctl status {{ program_name_seam }}

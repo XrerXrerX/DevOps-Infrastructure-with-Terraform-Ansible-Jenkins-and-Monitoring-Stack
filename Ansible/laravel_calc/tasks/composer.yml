@@ -1,0 +1,69 @@
+# @format
+---
+- name: lrv calc - Install Composer dependencies (DEV)
+  command: composer update --no-interaction --prefer-dist --optimize-autoloader
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: "1"
+  when: env == 'dev'
+
+- name: lrv calc - Install Composer dependencies (PROD)
+  command: composer install --no-interaction --prefer-dist --optimize-autoloader
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: "1"
+  when: env == 'prod'
+
+- name: lrv calc - Generate Laravel app key (dengan timeout)
+  command: php artisan key:generate
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  async: 30
+  poll: 5
+  environment:
+    APP_ENV: production
+  when: env == 'prod'
+
+- name: lrv calc - Generate Laravel app key (dengan timeout)
+  command: php artisan key:generate
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  async: 30
+  poll: 5
+  environment:
+    APP_ENV: local
+  when: env != 'prod'
+
+- name: lrv calc - Create storage symbolic link
+  command: php artisan storage:link
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  environment:
+    APP_ENV: production
+  when: env == 'prod'
+
+- name: lrv calc - Create storage symbolic link
+  command: php artisan storage:link
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  environment:
+    APP_ENV: local
+  when: env != 'prod'
+
+- name: lrv calc - Run Laravel migrate and seed
+  command: php artisan migrate --force
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  environment:
+    APP_ENV: production
+  when: env == 'prod'
+
+- name: lrv calc - Run Laravel migrate and seed
+  command: php artisan migrate --force
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+  environment:
+    APP_ENV: local
+  when: env != 'prod'

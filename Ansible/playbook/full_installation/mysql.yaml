@@ -1,0 +1,25 @@
+# @format
+---
+#tentukan binlogdo atau all database replication
+#check di master dan slave database task change binlog_do
+#sudah
+- name: Kumpulkan fakta dari bastion (wajib agar hostvars bisa diakses)
+  hosts: bastion_host_phpmyadmin
+  gather_facts: yes
+  tasks:
+    - name: Konfirmasi fakta bastion
+      debug:
+        msg:
+          - "IP: {{ ansible_default_ipv4.address }}"
+          - "DNS: {{ ansible_dns.nameservers | default('tidak ada') }}"
+
+- hosts: mysql_install
+  become: yes
+  roles:
+    - mysql_replication
+
+#install phpmyadmin di bastion atau di server yang ingin diinstal phpmuadmin
+- hosts: bastion_host_phpmyadmin
+  become: yes
+  roles:
+    - phpmyadmin

@@ -1,0 +1,23 @@
+# @format
+
+- name: Install phpmyadmin
+  apt:
+    name: phpmyadmin
+    state: present
+    update_cache: yes
+
+- name: Ensure Nginx conf.d exists
+  file:
+    path: /etc/nginx/conf.d
+    state: directory
+
+- name: Deploy phpmyadmin nginx config
+  template:
+    src: phpmyadmin.conf.j2
+    dest: /etc/nginx/conf.d/phpmyadmin.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Reload systemd
+    - Reload nginx

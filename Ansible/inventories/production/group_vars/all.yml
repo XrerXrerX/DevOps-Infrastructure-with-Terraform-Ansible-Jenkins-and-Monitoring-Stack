@@ -1,0 +1,19 @@
+# @format
+php_fpm_version: "8.3"
+
+#new infra
+laravel_app_path_dashboard: "/var/www/back-mini-dashboard"
+port_laravel_dashboard: 8082
+
+laravel_app_path_ws: "/var/www/back-mini-ws"
+port_laravel_ws: 8083
+
+laravel_app_path_calc: "/var/www/calculator"
+port_laravel_calc: 8081
+
+laravel_app_path_seam: "/var/www/back-mini-seam"
+port_laravel_seam: 8084
+
+#ENV ADDITIONAL
+TOKEN_CALCULATOR: "yourtoken"
+TOKEN_BEARER: "yourtoken2"

@@ -1,0 +1,94 @@
+# @format
+
+- name: Install Flask and Requests via apt (no pip, no venv)
+  apt:
+    name:
+      - python3-flask
+      - python3-requests
+    state: present
+    update_cache: yes
+
+- name: Deploy LINE dual-endpoint webhook script (Messaging API)
+  copy:
+    dest: /usr/local/bin/line_webhook.py
+    mode: "0755"
+    content: |
+      from flask import Flask, request, jsonify
+      import requests
+      import json
+
+      app = Flask(__name__)
+
+      # === LINE Bot Credentials ===
+      CHANNEL_ACCESS_TOKEN = "Bearer yourtoken"
+      RECIPIENT_IDS = [
+          "UID",
+          "UID",
+          "UID"
+      ]
+
+      def send_line_message(to_id, message):
+          headers = {
+              "Authorization": CHANNEL_ACCESS_TOKEN,
+              "Content-Type": "application/json"
+          }
+          payload = {
+              "to": to_id,
+              "messages": [
+                  {
+                      "type": "text",
+                      "text": message
+                  }
+              ]
+          }
+          return requests.post("https://api.line.me/v2/bot/message/push", headers=headers, json=payload)
+
+      # === Endpoint 1: Receive LINE event and log payload ===
+      @app.route("/receive_line_event", methods=["POST"])
+      def receive_line_event():
+          data = request.get_json()
+          with open("/tmp/line_event.log", "a") as f:
+              json.dump(data, f, indent=2)
+              f.write("\n\n")
+          return jsonify({"status": "received"}), 200
+
+      # === Endpoint 2: Send message via LINE bot ===
+      @app.route("/send_line_notify", methods=["POST"])
+      def send_line_alert():
+          data = request.get_json()
+          alerts = data.get("alerts", [])
+          for alert in alerts:
+              msg = f"[{alert['status'].upper()}] {alert['labels'].get('alertname')}:\n{alert['annotations'].get('description')}"
+              for to_id in RECIPIENT_IDS:
+                  send_line_message(to_id, msg)
+          return jsonify({"status": "sent"}), 200
+
+      if __name__ == "__main__":
+          app.run(host="0.0.0.0", port=5002)
+
+- name: Create systemd service for LINE webhook
+  copy:
+    dest: /etc/systemd/system/line_webhook.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=LINE Webhook (Receive Events + Send Notify)
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/bin/python3 /usr/local/bin/line_webhook.py
+      Restart=always
+      User=root
+      WorkingDirectory=/usr/local/bin
+      StandardOutput=journal
+      StandardError=journal
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd and start LINE webhook service
+  systemd:
+    name: line_webhook
+    state: restarted
+    enabled: true
+    daemon_reload: true

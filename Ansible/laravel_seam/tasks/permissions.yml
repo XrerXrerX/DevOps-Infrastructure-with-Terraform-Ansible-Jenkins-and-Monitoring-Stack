@@ -1,0 +1,14 @@
+# @format
+---
+- name: lrvl seam - Set permissions for Laravel directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0775"
+    recurse: yes
+  loop:
+    - "{{ laravel_app_path_seam }}"
+    - "{{ laravel_app_path_seam }}/storage"
+    - "{{ laravel_app_path_seam }}/bootstrap/cache"

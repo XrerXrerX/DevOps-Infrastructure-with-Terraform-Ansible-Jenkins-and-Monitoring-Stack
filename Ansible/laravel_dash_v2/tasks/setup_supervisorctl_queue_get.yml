@@ -1,0 +1,31 @@
+# @format
+---
+- name: lrv dashboard - Ensure supervisor is installed
+  apt:
+    name: supervisor
+    state: present
+    update_cache: true
+
+- name: lrv dashboard - Create supervisor config for reverb
+  copy:
+    dest: "/etc/supervisor/conf.d/{{ program_name_get }}.conf"
+    content: |
+      [program:{{ program_name_get }}]
+      command={{ supervisor_command_get }}
+      directory={{ laravel_app_path_dashboard }}
+      autostart=true
+      autorestart=true
+      stderr_logfile={{ log_path_get }}/{{ name_log_file_supervisor_get }}.err.log
+      stdout_logfile={{ log_path_get }}/{{ name_log_file_supervisor_get }}.out.log
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: lrv dashboard - Reread supervisor config
+  command: supervisorctl reread
+
+- name: lrv dashboard - Update supervisor
+  command: supervisorctl update
+
+- name: lrv dashboard - Check supervisor status
+  command: supervisorctl status {{ program_name_get }}

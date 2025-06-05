@@ -1,0 +1,44 @@
+# @format
+---
+- name: Update apt packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Install OpenJDK 17 (required by Jenkins)
+  apt:
+    name: openjdk-17-jdk
+    state: present
+
+- name: Install required dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - gnupg
+    - curl
+    - software-properties-common
+
+- name: Add Jenkins GPG key
+  shell: |
+    curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+  args:
+    executable: /bin/bash
+
+- name: Add Jenkins apt repository
+  copy:
+    dest: /etc/apt/sources.list.d/jenkins.list
+    content: |
+      deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+
+- name: Update apt and install Jenkins
+  apt:
+    update_cache: yes
+    name: jenkins
+    state: present
+
+- name: Enable Jenkins service
+  systemd:
+    name: jenkins
+    enabled: yes
+    state: started

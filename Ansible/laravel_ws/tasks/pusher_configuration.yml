@@ -1,0 +1,7 @@
+# @format
+---
+# tasks file for laravel_deploy
+- import_tasks: install_reverb.yml
+- import_tasks: setup_supervisorctl_pusher.yml
+- import_tasks: setup_supervisorctl_count.yml
+- import_tasks: nginx_pusher.yml

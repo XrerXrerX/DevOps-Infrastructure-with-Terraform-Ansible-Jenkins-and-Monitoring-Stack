@@ -1,0 +1,23 @@
+server {
+    listen {{ nginx_laravel_port_pusher }};
+    server_name {{ hostvars[groups['laravel_websocket_new'][0]]['ansible_default_ipv4']['address'] }};
+    root {{ laravel_app_path_ws }}/public;
+    index index.php index.html;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header Scheme $scheme;
+        proxy_set_header SERVER_PORT $server_port;
+        proxy_set_header REMOTE_ADDR $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_pass http://0.0.0.0:8080;
+    }
+    {% for ip in laravel_pusher_allowed_ips_final %}
+    allow {{ ip }};
+    {% endfor %}
+    deny all;
+}
+

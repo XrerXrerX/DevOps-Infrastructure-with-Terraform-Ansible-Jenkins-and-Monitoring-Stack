@@ -1,0 +1,93 @@
+# @format
+---
+- name: lrvl ws - Install Laravel Reverb via Composer
+  command: composer require laravel/reverb --no-interaction --no-progress --ansi
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+
+- name: lrvl ws - Run php artisan reverb:install
+  command: php artisan reverb:install --no-interaction --ansi
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+
+# - name: lrvl ws - Install Laravel Echo & Pusher JS
+#   command: npm install --save-dev laravel-echo pusher-js --no-interaction --ansi
+#   args:
+#     chdir: "{{ laravel_app_path_ws }}"
+
+- name: lrvl ws - Install Laravel Echo & Pusher JS
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    npm install --save-dev laravel-echo pusher-js
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+  become: no
+
+- name: lrvl ws - Update .env for BROADCAST_DRIVER
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^BROADCAST_DRIVER="
+    line: "BROADCAST_DRIVER={{ BROADCAST_DRIVER }}"
+    backrefs: true
+
+- name: lrvl ws - Update .env for BROADCAST_CONNECTION
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^BROADCAST_CONNECTION="
+    line: "BROADCAST_CONNECTION={{ BROADCAST_CONNECTION }}"
+    backrefs: true
+
+- name: lrvl ws - Update .env for QUEUE_CONNECTION
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^QUEUE_CONNECTION="
+    line: "QUEUE_CONNECTION={{ QUEUE_CONNECTION }}"
+    backrefs: true
+
+# - name: lrvl ws - Run npm run install
+#   command: npm install
+#   args:
+#     chdir: "{{ laravel_app_path_ws }}"
+
+- name: lrvl ws - Run npm run install
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    npm install
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+  become: no
+
+- name: lrvl ws - Run npm run build
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source "$NVM_DIR/nvm.sh"
+    npm run build
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+  become: no
+# - name: lrvl ws - Run npm run build
+#   shell: |
+#     export NVM_DIR="$HOME/.nvm"
+#     source "$NVM_DIR/nvm.sh"
+#     pm2 start npm --name "ws_back" -- run "dev"
+#   args:
+#     chdir: "{{ laravel_app_path_ws }}"
+#     executable: /bin/bash
+#   environment:
+#     NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+#   become: no
+# - name: lrvl ws - Run npm run build
+#   command: npm run build
+#   args:
+#     chdir: "{{ laravel_app_path_ws }}"

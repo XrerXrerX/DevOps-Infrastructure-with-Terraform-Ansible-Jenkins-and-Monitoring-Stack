@@ -1,0 +1,15 @@
+# @format
+---
+# - name: laravel seam - Run Laravel migrate and seed
+#   command: php artisan migrate:fresh --seed --force
+#   args:
+#     chdir: "{{ laravel_app_path_seam }}"
+#   when: env != 'prod'
+
+- name: laravel seam - Run Laravel migrate (allow failure)
+  shell: |
+    php artisan migrate:fresh --seed --force --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_seam }}"
+    executable: /bin/bash
+  when: env != 'prod'

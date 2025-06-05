@@ -1,0 +1,5 @@
+# @format
+---
+# tasks file for laravel_deploy
+- import_tasks: mysql.yml
+- import_tasks: client_mysql.yml

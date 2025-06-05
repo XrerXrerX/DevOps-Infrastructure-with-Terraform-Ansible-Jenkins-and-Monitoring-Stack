@@ -1,0 +1,66 @@
+# @format
+---
+- name: lrvl ws - Ensure TOKEN_CALCULATOR is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^TOKEN_CALCULATOR="
+    line: 'TOKEN_CALCULATOR="{{ TOKEN_CALCULATOR }}"'
+    create: yes
+
+- name: lrvl ws - Ensure DOMAIN_CALC is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^DOMAIN_CALC="
+    line: 'DOMAIN_CALC="https://calculator_at.bostoni.pro/undefined"'
+    create: yes
+
+- name: lrvl ws - Ensure URL_SEAMLESS is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^URL_SEAMLESS="
+    line: 'URL_SEAMLESS="{{ URL_SEAMLESS }}"'
+    create: yes
+
+- name: lrvl ws - Ensure TOKEN_BEARER is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^TOKEN_BEARER="
+    line: 'TOKEN_BEARER="{{ TOKEN_BEARER }}"'
+    create: yes
+
+- name: lrvl ws - Ensure GET_URL is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^GET_URL="
+    line: 'GET_URL="{{ GET_URL }}"'
+    create: yes
+
+- name: lrvl ws - Ensure WS_URL is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^WS_URL="
+    line: 'WS_URL="{{ WS_URL }}"'
+    create: yes
+
+#beda server di calculator
+
+- name: lrvl ws - Ensure DOMAIN is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path }}/.env"
+    regexp: "^DOMAIN="
+    line: "DOMAIN='{{ server_test }}'"
+    create: yes
+
+- name: lrvl ws - Ensure BEARER_TOKEN is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path }}/.env"
+    regexp: "^BEARER_TOKEN="
+    line: "BEARER_TOKEN='{{ TOKEN_CALCULATOR }}'"
+    create: yes
+
+- name: lrvl ws - Ensure L5_SWAGGER_UI_DARK_MODE is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path }}/.env"
+    regexp: "^L5_SWAGGER_UI_DARK_MODE="
+    line: "L5_SWAGGER_UI_DARK_MODE=true"
+    create: yes

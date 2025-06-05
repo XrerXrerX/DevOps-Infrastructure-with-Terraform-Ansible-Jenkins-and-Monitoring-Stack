@@ -1,0 +1,9 @@
+# @format
+---
+- hosts: laravel_dashboard_new
+  become: yes
+  tasks:
+    - name: restart supervisor
+      include_role:
+        name: laravel_dashboard
+        tasks_from: restart_supervisor.yml

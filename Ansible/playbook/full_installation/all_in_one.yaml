@@ -1,0 +1,190 @@
+# @format
+---
+#ATUR HOST DENGAN GROUPING
+- name: collect fact for bastion host
+  hosts:
+    - bastion_host_phpmyadmin
+    - laravel_dashboard_new
+    - laravel_websocket_new
+    - laravel_calculator_new
+    - laravel_seamless_new
+    - nextjs_frontend
+    - jenkins_prometheus
+    - public_nginx_proxy
+  gather_facts: yes
+  tasks:
+    - name: Tampilkan IP & FQDN Laravel Host
+      debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "FQDN: {{ ansible_fqdn }}"
+          - "Private IP: {{ ansible_default_ipv4.address }}"
+          - "DNS: {{ ansible_dns.nameservers | default('N/A') }}"
+
+#tentukan binlogdo atau all database replication
+#check di master dan slave database task change binlog_do
+#sudah
+- hosts: mysql_install
+  become: yes
+  roles:
+    - mysql_replication
+
+#create user untuk tiap user (laravel 1, laravel , 2 ,laravel 3)
+#check vars
+#sudah
+- hosts: mysql_master_new
+  become: yes
+  tasks:
+    - name: create username for laravel app
+      include_role:
+        name: mysql_replication
+        tasks_from: mysql_create_username.yml
+
+#untuk user yang ingin connect ke clone database
+#check vars
+#sudah
+- hosts: mysql_slave_new
+  become: yes
+  tasks:
+    - name: create username for laravel app
+      include_role:
+        name: mysql_replication
+        tasks_from: mysqlclone_create_username.yml
+
+#install phpmyadmin di bastion atau di server yang ingin diinstal phpmuadmin
+- hosts: bastion_host_phpmyadmin
+  become: yes
+  roles:
+    - phpmyadmin
+
+#install node dan pm2 untuk server yang in jalankan node
+#sudah
+- hosts: nodejs_install_new
+  become: yes
+  roles:
+    - nodejs
+
+#INSTALL composer php nginx di semua serer laravel dan php di bastion
+#sudah
+- hosts: laravel_all_install
+  become: yes
+  roles:
+    - php_nginx_composer
+
+#deploy laravel project [0] /calc
+- hosts: laravel_calculator_new
+  become: yes
+  roles:
+    - laravel_calc
+
+- hosts: laravel_websocket_new
+  become: yes
+  roles:
+    - laravel_ws
+
+- hosts: laravel_dashboard_new
+  become: yes
+  any_errors_fatal: true
+  roles:
+    - laravel_dash_v2
+
+#deploy laravel project [0] /seamless
+- hosts: laravel_seamless_new
+  become: yes
+  roles:
+    - laravel_seam
+
+- hosts: laravel_websocket_new
+  become: yes
+  tasks:
+    - name: laravel-ws env addtional set up
+      include_role:
+        name: laravel_ws
+        tasks_from: env_additional.yml
+
+- hosts: laravel_dashboard_new
+  become: yes
+  tasks:
+    - name: laravel-dashboard env addtional set up
+      include_role:
+        name: laravel_dash_v2
+        tasks_from: env_additional.yml
+
+- hosts: laravel_calculator_new
+  become: yes
+  tasks:
+    - name: laravel-calc env addtional set up
+      include_role:
+        name: laravel_calc
+        tasks_from: env_additional.yml
+
+- hosts: laravel_seamless_new
+  become: yes
+  tasks:
+    - name: laravel-seamless env addtional set up
+      include_role:
+        name: laravel_seam
+        tasks_from: env_additional.yml
+
+- hosts: laravel_websocket_new
+  become: yes
+  tasks:
+    - name: config pusher websocket
+      include_role:
+        name: laravel_ws
+        tasks_from: pusher_configuration.yml
+
+# #jalankan laravel jobs queue
+- hosts: laravel_dashboard_new
+  become: yes
+  tasks:
+    - name: laravel dashboard config queue work
+      include_role:
+        name: laravel_dash_v2
+        tasks_from: setup_supervisorctl_queue_get.yml
+
+#jalankan laravel jobs queue
+- hosts: laravel_seamless_new
+  become: yes
+  tasks:
+    - name: config queue work
+      include_role:
+        name: laravel_seam
+        tasks_from: setup_supervisorctl_queue_seam.yml
+
+#running next js
+- hosts: nextjs_frontend
+  become: yes
+  roles:
+    - nextjs_front
+
+- hosts: nextjs_frontend
+  become: yes
+  tasks:
+    - name: env addtional set up
+      include_role:
+        name: nextjs_front
+        tasks_from: env_additional.yml
+
+# deploy laravel public ip proxy
+- hosts: public_nginx_proxy
+  become: yes
+  roles:
+    - nginx_proxy_laravel
+
+# deploy nextjs public ip proxy
+- hosts: public_nginx_proxy
+  become: yes
+  roles:
+    - nginx_proxy_nextjs
+
+#deploy pusher private ip proxy
+# - hosts: public_nginx_proxy
+#   become: yes
+#   roles:
+#     - nginx_proxy_pusher
+
+- hosts: jenkins_prometheus
+  become: yes
+  roles:
+    - jenkins_install

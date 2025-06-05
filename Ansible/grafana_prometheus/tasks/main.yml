@@ -1,0 +1,8 @@
+# @format
+---
+# tasks file for laravel_deploy
+- import_tasks: grafana_prometheus.yml
+- import_tasks: alert_manager.yml
+- import_tasks: whatsapp_hook.yml
+- import_tasks: line_webhook.yml
+- import_tasks: nginx_private.yml

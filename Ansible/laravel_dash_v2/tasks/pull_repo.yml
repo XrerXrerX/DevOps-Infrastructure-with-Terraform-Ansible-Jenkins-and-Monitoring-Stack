@@ -1,0 +1,21 @@
+# @format
+---
+# roles/playbook/laravel/tasks/migrate.yaml
+- name: Add safe Git directory
+  shell: git config --global --add safe.directory "{{ laravel_app_path_dashboard }}"
+  become: false
+
+- name: Pull latest code from git
+  git:
+    repo: "{{ laravel_repo_url_dashboard }}"
+    dest: "{{ laravel_app_path_dashboard }}"
+    version: "{{ laravel_repo_branch_dashboard }}"
+    force: yes
+    accept_hostkey: yes
+
+- name: Run Laravel migrate (allow failure)
+  shell: |
+    php artisan migrate --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_dashboard }}"
+    executable: /bin/bash

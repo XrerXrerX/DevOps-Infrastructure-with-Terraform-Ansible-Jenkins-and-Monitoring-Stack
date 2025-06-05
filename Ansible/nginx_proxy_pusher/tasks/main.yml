@@ -1,0 +1,4 @@
+# @format
+---
+# tasks file for laravel_deploy
+- import_tasks: nginx_pusher.yml

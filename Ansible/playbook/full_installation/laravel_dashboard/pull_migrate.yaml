@@ -1,0 +1,9 @@
+# @format
+---
+- hosts: laravel_dashboard_new
+  become: yes
+  tasks:
+    - name: pull repo
+      include_role:
+        name: laravel_dash_v2
+        tasks_from: pull_repo.yml

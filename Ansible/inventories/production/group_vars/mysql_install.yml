@@ -1,0 +1,14 @@
+# @format
+db_name_first_deploy: db_mysql_master #ganti db sesuai nama jika ingin membuat db baru / binlogdo
+
+#Mysql master
+mysql_username_local: YOURUSERNAME
+mysql_password_local: YOURUSERNAME
+mysql_user_host_localhost: localhost
+
+#untuk phpmyadmin dan bastion ip
+bastion_user: YOURUSERNAME
+bastion_password: YOURPASSWORD
+
+mysql_repl_user: YOURUSERNAME
+mysql_repl_password: "YOURPASSWORD"

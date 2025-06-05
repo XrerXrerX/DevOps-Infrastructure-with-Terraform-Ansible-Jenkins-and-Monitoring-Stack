@@ -1,0 +1,20 @@
+# @format
+---
+- name: lrv seam - Add safe Git directory
+  shell: git config --global --add safe.directory "{{ laravel_app_path_seam }}"
+  become: false
+
+- name: lrv seam - Pull latest code from git
+  git:
+    repo: "{{ laravel_repo_url_seam }}"
+    dest: "{{ laravel_app_path_seam }}"
+    version: "{{ laravel_repo_branch_seam }}"
+    force: yes
+    accept_hostkey: yes
+
+- name: lrv seam - Run Laravel migrate (allow failure)
+  shell: |
+    php artisan migrate --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_seam }}"
+    executable: /bin/bash

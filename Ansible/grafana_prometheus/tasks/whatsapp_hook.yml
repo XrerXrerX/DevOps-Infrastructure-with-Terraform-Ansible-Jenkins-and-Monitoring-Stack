@@ -1,0 +1,68 @@
+# @format
+
+- name: Install Flask and Requests via apt (no pip, no venv)
+  apt:
+    name:
+      - python3-flask
+      - python3-requests
+    state: present
+    update_cache: yes
+
+- name: Deploy WhatsApp webhook script
+  copy:
+    dest: /usr/local/bin/whatsapp_webhook.py
+    mode: "0755"
+    content: |
+      from flask import Flask, request, jsonify
+      import requests
+
+      app = Flask(__name__)
+      CALLMEBOT_API = "https://api.callmebot.com/whatsapp.php"
+      RECIPIENTS = [
+          {"phone": "+YOURNUMBER", "apikey": "APIKEY"},
+          {"phone": "+YOURNUMBER", "apikey": "APIKEY"},
+      ]
+
+      @app.route("/send_whatsapp", methods=["POST"])
+      def send_whatsapp():
+          data = request.get_json()
+          alerts = data.get("alerts", [])
+          for alert in alerts:
+              msg = f"[{alert['status'].upper()}] {alert['labels'].get('alertname')}:\n{alert['annotations'].get('description')}"
+              for recipient in RECIPIENTS:
+                  requests.get(CALLMEBOT_API, params={
+                      "phone": recipient["phone"],
+                      "text": msg,
+                      "apikey": recipient["apikey"]
+                  })
+          return jsonify({"status": "sent"}), 200
+
+      if __name__ == "__main__":
+          app.run(host="0.0.0.0", port=5001)
+
+- name: Create systemd service for WhatsApp webhook
+  copy:
+    dest: /etc/systemd/system/whatsapp_webhook.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=WhatsApp Alert Webhook for Prometheus
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/bin/python3 /usr/local/bin/whatsapp_webhook.py
+      Restart=always
+      User=root
+      WorkingDirectory=/usr/local/bin
+      StandardOutput=journal
+      StandardError=journal
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd and start WhatsApp webhook
+  systemd:
+    name: whatsapp_webhook
+    state: restarted
+    enabled: true
+    daemon_reload: true

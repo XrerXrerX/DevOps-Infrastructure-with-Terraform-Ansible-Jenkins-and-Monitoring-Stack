@@ -1,0 +1,9 @@
+# @format
+---
+- hosts: nextjs_frontend
+  become: yes
+  tasks:
+    - name: add company key & app key
+      include_role:
+        name: nextjs_front
+        tasks_from: env_key_update.yml

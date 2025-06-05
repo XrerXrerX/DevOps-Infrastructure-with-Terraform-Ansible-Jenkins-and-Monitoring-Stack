@@ -1,0 +1,9 @@
+# @format
+
+# CREATE USER FOR CONNECT TO CLONE dashboard
+mysql_new_username_for_clone: YORUUSERNAME
+mysql_new_password_for_clone: "YOUR_PASSWORD!"
+
+# CREATE USER FOR CONNECT TO CLONE ws
+mysql_new_username_for_clone_ws: YORUUSERNAME
+mysql_new_password_for_clone_ws: "YOUR_PASSWORD!"

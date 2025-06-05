@@ -1,0 +1,59 @@
+# @format
+---
+- name: websocket Configure Nginx as reverse proxy to laravel in private subnet
+  template:
+    src: ws_nginx_laravel_proxy.conf.j2
+    dest: /etc/nginx/sites-available/{{ target_dest_nginx_websocket }}
+    owner: root
+    group: root
+    mode: 0644
+
+- name: websocket Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: websocket Ensure SSL directory exists
+  file:
+    path: /etc/ssl/laravel
+    state: directory
+    mode: "0755"
+
+- name: websocket Upload SSL certificate
+  copy:
+    src: ssl/{{ target_file_ssl_websocket }}.pem
+    dest: /etc/ssl/laravel/{{ target_file_ssl_websocket }}.pem
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: websocket Upload SSL key
+  copy:
+    src: ssl/{{ target_file_ssl_websocket }}.key
+    dest: /etc/ssl/laravel/{{ target_file_ssl_websocket }}.key
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: websocket Enable Nginx config
+  file:
+    src: /etc/nginx/sites-available/{{ target_dest_nginx_websocket }}
+    dest: /etc/nginx/sites-enabled/{{ target_dest_nginx_websocket }}
+    state: link
+    force: yes
+
+- name: websocket Remove default site if present in sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: websocket Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: websocket Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

@@ -1,0 +1,56 @@
+# @format
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Ensure Nginx is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Remove old Nginx proxy conf (if any)
+  file:
+    path: /etc/nginx/sites-enabled/nginx_proxy.conf
+    state: absent
+  ignore_errors: yes
+
+- name: Remove sites-available nginx_proxy.conf (if any)
+  file:
+    path: /etc/nginx/sites-available/nginx_proxy.conf
+    state: absent
+  ignore_errors: yes
+
+- name: Remove default site if exists
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  ignore_errors: yes
+
+- name: Deploy new Nginx config
+  template:
+    src: nginx_proxy.conf.j2
+    dest: /etc/nginx/sites-available/nginx_proxy.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enable Nginx proxy site
+  file:
+    src: /etc/nginx/sites-available/nginx_proxy.conf
+    dest: /etc/nginx/sites-enabled/nginx_proxy.conf
+    state: link
+    force: yes
+
+- name: Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

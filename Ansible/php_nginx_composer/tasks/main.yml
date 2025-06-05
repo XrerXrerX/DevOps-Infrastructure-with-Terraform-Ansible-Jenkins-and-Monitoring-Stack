@@ -1,0 +1,8 @@
+# @format
+---
+# tasks file for laravel_deploy
+- import_tasks: php-fpm.yml
+- import_tasks: composer_install.yml
+- import_tasks: nginx_install.yml
+- import_tasks: mysql_create_username.yml
+- import_tasks: mysqlclone_create_username.yml

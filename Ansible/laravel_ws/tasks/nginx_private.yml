@@ -1,0 +1,73 @@
+# @format
+---
+- name: lrvl ws - Ensure Nginx installed
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: lrvl ws - Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Debug all cross-host IPs
+  debug:
+    msg: >-
+      Laravel WS: {{ hostvars[groups['laravel_websocket_new'][0]].get('ansible_default_ipv4', {}).get('address', 'N/A') }},
+      Seamless: {{ hostvars[groups['laravel_seamless_new'][0]].get('ansible_default_ipv4', {}).get('address', 'N/A') }},
+      Public NGINX: {{ hostvars[groups['public_nginx_proxy'][0]].get('ansible_default_ipv4', {}).get('address', 'N/A') }}
+
+- name: Generate combined list of allowed IPs including public_nginx_proxy
+  set_fact:
+    laravel_ws_allowed_ips_final: >-
+      {{
+        laravel_allowed_subnets_ws +
+       (
+          [
+            groups['bastion_host_phpmyadmin'],
+            groups['laravel_dashboard_new'],
+            groups['laravel_websocket_new'],
+            groups['laravel_calculator_new'],
+            groups['laravel_seamless_new'],
+            groups['nextjs_frontend'],
+            groups['jenkins_prometheus'],
+            groups['public_nginx_proxy']
+          ]
+          | flatten
+          | map('extract', hostvars, 'ansible_default_ipv4')
+          | map(attribute='address')
+          | list
+        )
+      }}
+
+- name: lrvl ws - Deploy Nginx config for Laravel private ip
+  template:
+    src: laravel.conf.j2
+    dest: /etc/nginx/sites-available/{{ name_file_conf_ws }}.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: lrvl ws - Enable Laravel Nginx site
+  file:
+    src: /etc/nginx/sites-available/{{ name_file_conf_ws }}.conf
+    dest: /etc/nginx/sites-enabled/{{ name_file_conf_ws }}.conf
+    state: link
+    force: yes
+
+- name: lrvl ws - Disable default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: lrvl ws - Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: lrvl ws - Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

@@ -1,0 +1,7 @@
+# @format
+---
+- name: lrv dashboard- Restart supervisor programs
+  become: true
+  command: /usr/bin/supervisorctl restart {{ item }}
+  loop:
+    - "{{ program_name_get }}"

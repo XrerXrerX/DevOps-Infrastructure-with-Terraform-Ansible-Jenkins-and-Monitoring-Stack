@@ -1,0 +1,82 @@
+# @format
+---
+- name: Set custom fact for IP & DNS
+  set_fact:
+    private_ip_next: "{{ ansible_default_ipv4.address }}"
+
+- name: Ensure git is installed
+  apt:
+    name: git
+    state: present
+    update_cache: yes
+
+- name: Debug path and user
+  debug:
+    msg: "App will be cloned to {{ next_app_path }} as {{ user }}"
+
+- name: Check if Next.js app already cloned
+  stat:
+    path: "{{ next_app_path }}/.git"
+  register: nextjs_repo
+
+- name: Clone Next.js app
+  git:
+    repo: "{{ next_repo_url }}"
+    dest: "{{ next_app_path }}"
+    update: yes
+    version: "{{ next_repo_branch }}"
+  become: no
+  when: not nextjs_repo.stat.exists
+
+- name: Install dependencies using npm
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    source $NVM_DIR/nvm.sh
+    cd {{ next_app_path }}
+    npm install
+  args:
+    executable: /bin/bash
+  become: no
+
+- name: Run build if production
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    source $NVM_DIR/nvm.sh
+    cd {{ next_app_path }}
+    npm run build
+  when: env == 'prod'
+  args:
+    executable: /bin/bash
+  become: no
+
+- name: Start Next.js app via PM2
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    source $NVM_DIR/nvm.sh
+    cd {{ next_app_path }}
+    {{ node_command }}
+  args:
+    executable: /bin/bash
+  become: no
+
+- name: Save PM2 process list
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    source $NVM_DIR/nvm.sh
+    pm2 save
+  args:
+    executable: /bin/bash
+  become: no
+
+- name: Check PM2 status (pm2 ls)
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source $NVM_DIR/nvm.sh
+    pm2 ls
+  args:
+    executable: /bin/bash
+  become: no
+  register: pm2_status
+
+- debug:
+    var: pm2_status.stdout_lines

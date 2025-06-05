@@ -1,0 +1,9 @@
+# @format
+---
+- name: lrvl ws - Run Laravel migrate (allow failure)
+  shell: |
+    php artisan migrate:fresh --seed --force --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+    executable: /bin/bash
+  when: env != 'prod'

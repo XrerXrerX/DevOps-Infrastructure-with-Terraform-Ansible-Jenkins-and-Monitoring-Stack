@@ -1,0 +1,53 @@
+# @format
+
+laravel_repo_branch_ws: "back-mini-ws"
+laravel_repo_url_seam: "YOUR-REPO"
+
+laravel_db_connection_ws_post: "mysql_post"
+#hanya jalankank ketika manual
+laravel_db_port_ws: 3306
+laravel_db_name_ws: "YOUR-DBNAME" # make sure replication accept it with slave
+
+# nama file untuk di nginx available
+name_file_conf_ws: laravel-websocket
+
+laravel_server_name_ws: "YOURDOMAINS" # atau IP public
+laravel_ssl_cert_ws: "websocket.pem" # cek files pem
+laravel_ssl_key_ws: "websocket.key" # cek files key
+
+laravel_allowed_subnets_ws:
+  - "127.0.0.1" # localhost
+
+#reverb pusher integration
+#reverb
+BROADCAST_CONNECTION: reverb
+QUEUE_CONNECTION: sync
+#supervisorctl ws
+program_name_pusher: websocket_laravel
+reverb_command: php artisan reverb:start
+log_path_ws: "{{ laravel_app_path_ws }}/storage/logs"
+name_log_file_supervisor_reverb: laravel_reverb
+#env ws
+REVERB_PORT: 8080
+REVERB_SCHEME: http
+REVERB_SERVER_PORT: 8080
+name_file_conf_pusher: pusher-websocket
+nginx_laravel_port_pusher: 4141
+
+#supervisorctl count manage
+
+program_name_count: count_laravel
+reverb_command_count: php artisan periode:manage-countdown
+log_path_count: "{{ laravel_app_path_ws }}/storage/logs"
+name_log_file_supervisor_count: laravel_count
+
+#sama dengan create mysql master /slave
+# CREATE USER NEW [2] / ws
+mysql_new_username_ws: YOURUSERNAME
+mysql_new_password_ws: "your_password!"
+
+#for clone
+mysql_new_username_ws_get: YOURUSERNAME
+mysql_new_password_ws_get: "your_password!"
+
+BROADCAST_DRIVER: reverb

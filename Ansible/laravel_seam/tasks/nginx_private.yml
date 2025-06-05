@@ -1,0 +1,70 @@
+# @format
+---
+- name: lrv seam - Ensure Nginx installed
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: lrv seam - Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+# - name: lrv seam - Set custom fact for IP & DNS
+#   set_fact:
+#     private_ip_seamless: "{{ ansible_default_ipv4.address }}"
+
+- name: Generate combined list of allowed IPs including public_nginx_proxy
+  set_fact:
+    laravel_seamless_allowed_ips_final: >-
+      {{
+        laravel_allowed_subnets_seam +
+       (
+          [
+            groups['bastion_host_phpmyadmin'],
+            groups['laravel_dashboard_new'],
+            groups['laravel_websocket_new'],
+            groups['laravel_calculator_new'],
+            groups['laravel_seamless_new'],
+            groups['nextjs_frontend'],
+            groups['jenkins_prometheus'],
+            groups['public_nginx_proxy']
+          ]
+          | flatten
+          | map('extract', hostvars, 'ansible_default_ipv4')
+          | map(attribute='address')
+          | list
+        )
+      }}
+
+- name: lrv seam - Deploy Nginx config for Laravel private ip
+  template:
+    src: laravel.conf.j2
+    dest: /etc/nginx/sites-available/{{ name_file_conf_seam }}.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: lrv seam - Enable Laravel Nginx site
+  file:
+    src: /etc/nginx/sites-available/{{ name_file_conf_seam }}.conf
+    dest: /etc/nginx/sites-enabled/{{ name_file_conf_seam }}.conf
+    state: link
+    force: yes
+
+- name: lrv seam - Disable default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: lrv seam - Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: lrv seam - Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

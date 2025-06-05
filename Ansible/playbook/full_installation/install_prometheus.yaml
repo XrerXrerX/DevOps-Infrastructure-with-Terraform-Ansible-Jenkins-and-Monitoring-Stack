@@ -1,0 +1,18 @@
+# @format
+
+- name: Collect facts from node_exporter targets
+  hosts: node_exporter
+  gather_facts: yes
+  tasks:
+    - name: Confirm facts gathered
+      debug:
+        msg: |
+          Host: {{ inventory_hostname }}
+          Ansible Hostname: {{ ansible_hostname }}
+          IP: {{ ansible_default_ipv4.address }}
+
+- name: Install Prometheus + Grafana on localhost
+  hosts: local_prometheus
+  become: yes
+  roles:
+    - grafana_prometheus

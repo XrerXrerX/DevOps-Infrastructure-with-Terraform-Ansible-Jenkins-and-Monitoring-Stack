@@ -1,0 +1,9 @@
+# @format
+---
+- name: Restart Prometheus
+  become: true
+  systemd:
+    name: prometheus
+    state: restarted
+    enabled: true
+    daemon_reload: true

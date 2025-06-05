@@ -1,0 +1,79 @@
+# @format
+---
+- name: Ensure python3-pymysql is installed (for Ansible MySQL modules)
+  apt:
+    name: python3-pymysql
+    state: present
+    update_cache: yes
+
+- name: Install MySQL Server
+  apt:
+    name: mysql-server
+    state: present
+    update_cache: yes
+
+- name: Ambil DNS dan IP private dari bastion (jika bukan host aktif)
+  set_fact:
+    dnsPrivateBastion: "{{ hostvars[item].ansible_fqdn | default('N/A') }}"
+    ipPrivateBastion: "{{ hostvars[item].ansible_default_ipv4.address | default('N/A') }}"
+  loop: "{{ groups['bastion_host_phpmyadmin'] }}"
+  when: item != inventory_hostname
+
+- name: Tampilkan DNS dan IP private dari bastion yang tidak aktif
+  debug:
+    msg:
+      - "DNS Bastion: {{ dnsPrivateBastion }}"
+      - "IP Bastion: {{ ipPrivateBastion }}"
+  when: dnsPrivateBastion is defined and ipPrivateBastion is defined
+
+# - name: Set MySQL master user host as private DNS
+#   set_fact:
+#     mysql_user_host_replica: "{{ ansible_fqdn }}"
+#   # when: "'mysql_master_new' in group_names"
+
+# - name: Get IP used by bastion for mysql access
+#   debug:
+#     msg: "{{ ansible_fqdn }} / {{ ansible_default_ipv4.address }}"
+
+- name: Install MySQL Client without update cache
+  apt:
+    name: mysql-client
+    state: present
+  when: "'mysql_slave_new' in group_names"
+
+- name: Ensure MySQL is started
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Ensure database {{ db_name_first_deploy }} exists
+  community.mysql.mysql_db:
+    name: "{{ db_name_first_deploy }}"
+    state: present
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user {{ mysql_username_local }}@{{ mysql_user_host_localhost }}
+  community.mysql.mysql_user:
+    name: "{{ mysql_username_local }}"
+    password: "{{ mysql_password_local }}"
+    host: "{{ mysql_user_host_localhost }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user {{ bastion_user }}@{{ dnsPrivateBastion }}
+  community.mysql.mysql_user:
+    name: "{{ bastion_user }}"
+    password: "{{ bastion_password }}"
+    host: "{{ dnsPrivateBastion }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock

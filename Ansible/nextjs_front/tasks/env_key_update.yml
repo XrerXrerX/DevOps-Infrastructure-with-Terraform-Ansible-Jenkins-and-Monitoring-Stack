@@ -1,0 +1,21 @@
+# @format
+---
+- name: Ensure REACT_APP_COMPANY_KEY is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_COMPANY_KEY="
+    line: "REACT_APP_COMPANY_KEY={{ REACT_APP_COMPANY_KEY }}"
+    create: yes
+    mode: "0644"
+    owner: "{{ ansible_user | default('ubuntu') }}"
+    group: "{{ ansible_user | default('ubuntu') }}"
+
+- name: Ensure REACT_APP_WS_KEY is set in .env
+  lineinfile:
+    path: "{{ next_app_path }}/.env"
+    regexp: "^REACT_APP_WS_KEY="
+    line: "REACT_APP_WS_KEY={{ REACT_APP_WS_KEY }}"
+    create: yes
+    mode: "0644"
+    owner: "{{ ansible_user | default('ubuntu') }}"
+    group: "{{ ansible_user | default('ubuntu') }}"

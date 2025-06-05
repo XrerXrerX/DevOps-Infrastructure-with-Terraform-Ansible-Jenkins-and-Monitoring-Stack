@@ -1,0 +1,15 @@
+# @format
+---
+- name: lrv calc - Ensure TOKEN_BEARER is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_calc }}/.env"
+    regexp: "^TOKEN_BEARER="
+    line: 'BEARER_TOKEN="{{ TOKEN_CALCULATOR }}"'
+    create: yes
+
+- name: lrv calc - Ensure Swagger zone is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_calc }}/.env"
+    regexp: "^L5_SWAGGER_UI_DARK_MODE="
+    line: 'L5_SWAGGER_UI_DARK_MODE="true"'
+    create: yes

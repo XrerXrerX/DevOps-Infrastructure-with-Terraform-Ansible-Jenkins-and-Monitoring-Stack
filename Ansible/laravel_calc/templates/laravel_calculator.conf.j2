@@ -1,0 +1,19 @@
+server {
+    listen {{ port_laravel_calc }};
+    server_name {{ private_ip_calc }};
+    root {{ laravel_app_path_calc }}/public;
+    index index.php index.html;
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php{{ php_fpm_version }}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    {% for ip in laravel_calc_allowed_ips_final %}
+    allow {{ ip }};
+    {% endfor %}
+    deny all;
+}

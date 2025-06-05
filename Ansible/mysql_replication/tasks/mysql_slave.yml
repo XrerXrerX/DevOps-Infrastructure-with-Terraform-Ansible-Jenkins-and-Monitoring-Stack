@@ -1,0 +1,125 @@
+# @format
+---
+#============ SLAVE
+
+- name: Tampilkan inventory_hostname
+  debug:
+    msg: "Hostname: {{ group_names }}"
+  when: "'mysql_slave_new' in group_names"
+
+- name: Get IP used by bastion for mysql access
+  debug:
+    msg: "{{ ansible_fqdn }} / {{ ansible_default_ipv4.address }}"
+
+- name: Set bind-address to 0.0.0.0
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: "^bind-address"
+    line: "bind-address = 0.0.0.0"
+  notify: Restart mysql
+  when: "'mysql_slave_new' in group_names"
+
+- name: Wait for MySQL port to be open
+  wait_for:
+    host: "{{ hostvars[groups['mysql_master_new'][0]]['ansible_default_ipv4']['address'] }}"
+    port: 3306
+    state: started
+    timeout: 30
+  when: "'mysql_slave_new' in group_names"
+
+- name: Stop replication before reconfiguration (safe stop)
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: stopreplica
+  ignore_errors: yes
+  when: "'mysql_slave_new' in group_names"
+
+- name: Reset all replication settings on clone
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: resetreplicaall
+  ignore_errors: yes
+  when: "'mysql_slave_new' in group_names"
+
+- name: Debug binlog info from master
+  debug:
+    msg: "File: {{ hostvars[groups['mysql_master_new'][0]].binlog_file }}, Pos: {{ hostvars[groups['mysql_master_new'][0]].binlog_pos }}"
+  when: "'mysql_slave_new' in group_names"
+
+- name: Configure slave (only on clone)
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: changeprimary
+    primary_host: "{{ hostvars[groups['mysql_master_new'][0]]['ansible_host'] | default(groups['mysql_master_new'][0]) }}"
+    primary_user: "{{ mysql_repl_user }}"
+    primary_password: "{{ mysql_repl_password }}"
+    primary_log_file: "{{ hostvars[groups['mysql_master_new'][0]].binlog_file }}"
+    primary_log_pos: "{{ hostvars[groups['mysql_master_new'][0]].binlog_pos }}"
+  when: "'mysql_slave_new' in group_names"
+
+#want replicat db specific include binlog_do_db
+- name: Configure MySQL replication settings
+  blockinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf # file terpisah lebih aman
+    create: yes
+    block: |
+      server-id = {{ (inventory_hostname == 'mysql_master_new') | ternary(1, 2) }}
+      log_bin = /var/log/mysql/mysql-bin.log
+  notify: Restart mysql
+  when: "'mysql_slave_new' in group_names"
+
+#jika db tertentu maka uncomment di bawah ini
+
+# - name: Configure MySQL replication settings
+#   blockinfile:
+#     path: /etc/mysql/mysql.conf.d/mysqld.cnf # file terpisah lebih aman
+#     create: yes
+#     block: |
+#       server-id = {{ (inventory_hostname == 'mysql_master_new') | ternary(1, 2) }}
+#       log_bin = /var/log/mysql/mysql-bin.log
+#       binlog_do_db = "{{ test_db_name }}"
+#   notify: Restart mysql
+#   when: "'mysql_slave_new' in group_names"
+
+- name: Start slave (only on clone)
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: startreplica
+  when: "'mysql_slave_new' in group_names"
+
+- name: Test connection to MySQL Source
+  command: >
+    mysql -h {{ hostvars[groups['mysql_master_new'][0]]['ansible_default_ipv4']['address'] }} -u {{ mysql_repl_user }} -p{{ mysql_repl_password }} -e "SHOW DATABASES;"
+  register: test_conn
+  changed_when: false
+  failed_when: test_conn.rc != 0
+  when: "'mysql_slave_new' in group_names"
+
+- name: Show connection test result
+  debug:
+    var: test_conn.stdout_lines
+  when: "'mysql_slave_new' in group_names"
+
+- name: Show slave status
+  command: mysql -uroot -e "SHOW REPLICA STATUS\\G"
+  register: replica_status
+  when: "'mysql_slave_new' in group_names"
+
+- name: Display slave IO/SQL running status
+  debug:
+    msg: >-
+      {% set io_line = replica_status.stdout_lines | select('search', 'Slave_IO_Running') | list %}
+      {% set sql_line = replica_status.stdout_lines | select('search', 'Slave_SQL_Running') | list %}
+      Slave_IO_Running: {{ io_line[0] if io_line else 'Not found' }},
+      Slave_SQL_Running: {{ sql_line[0] if sql_line else 'Not found' }}
+  when: "'mysql_slave_new' in group_names and replica_status is defined and replica_status.stdout_lines is defined"
+
+- name: Restart MySQL service
+  ansible.builtin.service:
+    name: mysql
+    state: restarted
+  when: "'mysql_slave_new' in group_names"

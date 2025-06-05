@@ -1,0 +1,22 @@
+limit_req_zone $binary_remote_addr zone=req_limit_dashboard:10m rate=10r/s;
+
+server {
+    listen {{ port_laravel_dashboard }};
+    server_name {{ hostvars[groups['laravel_dashboard_new'][0]]['ansible_default_ipv4']['address'] }};
+    root {{ laravel_app_path_dashboard }}/public;
+    index index.php index.html;
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+        limit_req zone=req_limit_dashboard burst=20 nodelay;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php{{ php_fpm_version }}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    {% for ip in laravel_dashboard_allowed_ips_final %}
+    allow {{ ip }};
+    {% endfor %}
+    deny all;
+}

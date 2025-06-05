@@ -1,0 +1,6 @@
+# @format
+---
+# tasks file for laravel_deploy
+- import_tasks: mysql_install.yml
+- import_tasks: mysql_master.yml
+- import_tasks: mysql_slave.yml

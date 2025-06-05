@@ -1,0 +1,119 @@
+# @format
+
+# tasks file for mysql_client
+
+- name: Tampilkan inventory_hostname
+  debug:
+    msg: "Hostname: {{ group_names }}"
+
+# - name: Daftar semua host yang sedang diproses
+#   debug:
+#     var: groups['all']
+- name: Set bind-address to 0.0.0.0
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: "^bind-address"
+    line: "bind-address = 0.0.0.0"
+  notify: Restart mysql
+  # when: inventory_hostname == 'mysql_clone'
+
+# - name: Reset old replica config
+#   community.mysql.mysql_replication:
+#     login_user: root
+#     login_unix_socket: /var/run/mysqld/mysqld.sock
+#     mode: resetreplicaall
+#   when: inventory_hostname == 'mysql_clone'
+- name: Wait for MySQL port to be open
+  wait_for:
+    host: "{{ mysql_source_private_ip }}"
+    port: 3306
+    state: started
+    timeout: 30
+  # when: inventory_hostname == 'mysql_clone'
+
+- name: Stop replication before reconfiguration (safe stop)
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: stopreplica
+  ignore_errors: yes
+
+- name: Reset all replication settings on clone
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: resetreplicaall
+  ignore_errors: yes
+
+- name: Configure slave (only on clone)
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: changeprimary
+    primary_host: "{{ hostvars[groups['mysql_master'][0]]['ansible_host'] | default(groups['mysql_master'][0]) }}"
+    primary_user: "{{ mysql_repl_user }}"
+    primary_password: "{{ mysql_repl_password }}"
+    primary_log_file: "{{ hostvars[groups['mysql_master'][0]]['binlog_file'] }}"
+    primary_log_pos: "{{ hostvars[groups['mysql_master'][0]]['binlog_pos'] }}"
+  # when: inventory_hostname == 'mysql_clone'
+
+- name: Configure MySQL replication settings
+  blockinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf # file terpisah lebih aman
+    create: yes
+    block: |
+      server-id = {{ (inventory_hostname == 'mysql_master') | ternary(1, 2) }}
+      log_bin = /var/log/mysql/mysql-bin.log
+      binlog_do_db = "{{ test_db_name }}"
+  notify: Restart mysql
+  # when: inventory_hostname == 'mysql_clone'
+
+- name: Start slave (only on clone)
+  community.mysql.mysql_replication:
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    mode: startreplica
+
+- name: Test connection to MySQL Source
+  command: >
+    mysql -h {{ mysql_source_private_ip }} -u {{ mysql_repl_user }} -p{{ mysql_repl_password }} -e "SHOW DATABASES;"
+  register: test_conn
+  changed_when: false
+  failed_when: test_conn.rc != 0
+
+# - set_fact:
+#     binlog_file: "{{ master_status_output.stdout_lines | select('search', 'File:') | first | regex_replace('File: ', '') }}"
+#     binlog_pos: "{{ master_status_output.stdout_lines | select('search', 'Position:') | first | regex_replace('Position: ', '') }}"
+#   # when: inventory_hostname == 'mysql_clone'
+- name: Show connection test result
+  debug:
+    var: test_conn.stdout_lines
+  # when: inventory_hostname == 'mysql_clone'
+
+- name: Show slave status
+  command: mysql -uroot -e "SHOW REPLICA STATUS\\G"
+  register: replica_status
+  # when: inventory_hostname == 'mysql_clone'
+
+- name: Display slave IO/SQL running status
+  debug:
+    msg: >-
+      {% set io_line = replica_status.stdout_lines | select('search', 'Slave_IO_Running') | list %}
+      {% set sql_line = replica_status.stdout_lines | select('search', 'Slave_SQL_Running') | list %}
+      Slave_IO_Running: {{ io_line[0] if io_line else 'Not found' }},
+      Slave_SQL_Running: {{ sql_line[0] if sql_line else 'Not found' }}
+  when: "'mysql_clone' in group_names and replica_status is defined and replica_status.stdout_lines is defined"
+# - name: Cleanup old PHP installation (fix install bug)
+#   become: true
+#   shell: |
+#     apt-get -f install -y
+#     apt-get purge -y php{{ php_fpm_version }}-fpm php{{ php_fpm_version }} php-fpm php
+#     apt-get autoremove -y --purge
+#     apt-get clean
+#     rm -rf /etc/php/{{ php_fpm_version }} /etc/php
+#   ignore_errors: yes
+
+- name: Restart MySQL service
+  ansible.builtin.service:
+    name: mysql
+    state: restarted

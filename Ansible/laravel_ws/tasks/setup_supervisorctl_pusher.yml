@@ -1,0 +1,66 @@
+# @format
+---
+- name: set up pusher spv Ensure supervisor is installed
+  apt:
+    name: supervisor
+    state: present
+    update_cache: true
+
+- name: set up pusher spv Create supervisor config for reverb
+  copy:
+    dest: "/etc/supervisor/conf.d/{{ program_name_pusher }}.conf"
+    content: |
+      [program:{{ program_name_pusher }}]
+      command={{ reverb_command }}
+      directory={{ laravel_app_path_ws }}
+      autostart=true
+      autorestart=true
+      stderr_logfile={{ log_path_ws }}/{{ name_log_file_supervisor_reverb }}.err.log
+      stdout_logfile={{ log_path_ws }}/{{ name_log_file_supervisor_reverb }}.out.log
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: set up pusher spv Reread supervisor config
+  command: supervisorctl reread
+
+- name: set up pusher spv Update supervisor
+  command: supervisorctl update
+
+- name: set up pusher spv Check supervisor status
+  command: supervisorctl status {{ program_name_pusher }}
+
+- name: set up pusher spv Ensure REVERB_HOST is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_HOST="
+    line: "REVERB_HOST={{ hostvars[groups['laravel_websocket_new'][0]]['ansible_default_ipv4']['address'] }}"
+    create: yes
+
+- name: set up pusher spv Ensure REVERB_PORT is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_PORT="
+    line: "REVERB_PORT={{ REVERB_PORT }}"
+    create: yes
+
+- name: set up pusher spv Ensure REVERB_SCHEME is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_SCHEME="
+    line: "REVERB_SCHEME={{ REVERB_SCHEME }}"
+    create: yes
+
+- name: set up pusher spv Ensure REVERB_SERVER_HOST is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_SERVER_HOST="
+    line: "REVERB_SERVER_HOST={{ hostvars[groups['laravel_websocket_new'][0]]['ansible_default_ipv4']['address'] }}"
+    create: yes
+
+- name: set up pusher spv Ensure REVERB_SERVER_PORT is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_SERVER_PORT="
+    line: "REVERB_SERVER_PORT={{ REVERB_SERVER_PORT }}"
+    create: yes

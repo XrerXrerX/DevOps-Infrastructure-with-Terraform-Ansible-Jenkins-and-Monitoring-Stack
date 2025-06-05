@@ -1,0 +1,63 @@
+# @format
+---
+#============== CREATE USER
+#check vars
+- name: Output FQDN laravel_dashboard_new
+  debug:
+    msg: "FQDN dashboard: {{ hostvars[groups['laravel_dashboard_new'][0]]['ansible_fqdn'] }}"
+
+- name: Output FQDN laravel_websocket_new
+  debug:
+    msg: "FQDN websocket: {{ hostvars[groups['laravel_websocket_new'][0]]['ansible_fqdn'] }}"
+
+- name: Output FQDN laravel_seamless_new
+  debug:
+    msg: "FQDN seamless: {{ hostvars[groups['laravel_seamless_new'][0]]['ansible_fqdn'] }}"
+
+- name: Create MySQL user {{ mysql_new_username_dashboard }}
+  community.mysql.mysql_user:
+    name: "{{ mysql_new_username_dashboard }}"
+    password: "{{ mysql_new_password_dashboard }}"
+    host: "{{ hostvars[groups['laravel_dashboard_new'][0]]['ansible_fqdn'] }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user {{ mysql_new_username_ws }}
+  community.mysql.mysql_user:
+    name: "{{ mysql_new_username_ws }}"
+    password: "{{ mysql_new_password_ws }}"
+    host: "{{ hostvars[groups['laravel_websocket_new'][0]]['ansible_fqdn'] }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user {{ mysql_new_username_seam }}
+  community.mysql.mysql_user:
+    name: "{{ mysql_new_username_seam }}"
+    password: "{{ mysql_new_password_seam }}"
+    host: "{{ hostvars[groups['laravel_seamless_new'][0]]['ansible_fqdn'] }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user {{ mysql_new_username_calc }}
+  community.mysql.mysql_user:
+    name: "{{ mysql_new_username_calc }}"
+    password: "{{ mysql_new_password_calc }}"
+    host: "{{ hostvars[groups['laravel_calculator_new'][0]]['ansible_fqdn'] }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock

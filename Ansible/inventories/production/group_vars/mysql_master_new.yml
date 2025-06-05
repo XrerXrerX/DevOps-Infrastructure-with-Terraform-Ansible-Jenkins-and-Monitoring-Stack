@@ -1,0 +1,18 @@
+# @format
+
+# CREATE USER NEW [0] /get sama dengan
+mysql_new_username_dashboard: YOURUSERDASHBOARD
+mysql_new_password_dashboard: "YOUR_PASSWORD!"
+
+# CREATE USER NEW [1] /seam
+mysql_new_username_seam: YOURUSER_SEAM
+mysql_new_password_seam: "YOUR_PASSWORD!"
+
+# CREATE USER NEW [2] / ws
+mysql_new_username_ws: YOURUSER_SEAM
+mysql_new_password_ws: "YOUR_PASSWORD!"
+
+#SAMA DENGAN MYSQL NEW CALC
+# CREATE USER NEW [3] /calc
+mysql_new_username_calc: YOURUSER_CALC
+mysql_new_password_calc: "YOUR_PASSWORD!"

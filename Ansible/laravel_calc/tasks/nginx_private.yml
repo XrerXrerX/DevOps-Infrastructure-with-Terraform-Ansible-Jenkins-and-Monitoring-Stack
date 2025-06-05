@@ -1,0 +1,70 @@
+# @format
+---
+- name: lrvl Ensure Nginx installed
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: lrvl Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: lrvl Set custom fact for IP & DNS
+  set_fact:
+    private_ip_calc: "{{ ansible_default_ipv4.address }}"
+
+- name: Generate combined list of allowed IPs including public_nginx_proxy
+  set_fact:
+    laravel_calc_allowed_ips_final: >-
+      {{
+        laravel_allowed_subnets_calc +
+        (
+          [
+            groups['bastion_host_phpmyadmin'],
+            groups['laravel_dashboard_new'],
+            groups['laravel_websocket_new'],
+            groups['laravel_calculator_new'],
+            groups['laravel_seamless_new'],
+            groups['nextjs_frontend'],
+            groups['jenkins_prometheus'],
+            groups['public_nginx_proxy']
+          ]
+          | flatten
+          | map('extract', hostvars, 'ansible_default_ipv4')
+          | map(attribute='address')
+          | list
+        )
+      }}
+
+- name: lrvl Deploy Nginx config for Laravel with SSL
+  template:
+    src: laravel_calculator.conf.j2
+    dest: /etc/nginx/sites-available/{{ name_file_conf_calc }}.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: lrvl Enable Laravel Nginx site
+  file:
+    src: /etc/nginx/sites-available/{{ name_file_conf_calc }}.conf
+    dest: /etc/nginx/sites-enabled/{{ name_file_conf_calc }}.conf
+    state: link
+    force: yes
+
+- name: lrvl Disable default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: lrvl Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: lrvl Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

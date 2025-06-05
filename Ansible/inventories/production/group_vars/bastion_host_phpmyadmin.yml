@@ -1,0 +1,12 @@
+# @format
+
+# ada di task
+phpmyadmin_allowed_ips:
+  - YOURIP/32
+  - YOURIP
+  - 127.0.0.1 #localhost
+
+port_mysql_multihost: 3306
+
+#require('crypto').randomBytes(64).toString('hex');
+blowfish_secret: XXXXXXXXXX #untuk config phpmyadmin #pake key

@@ -1,0 +1,28 @@
+server {
+    listen 80;
+    server_name _;
+
+    location /private_mysql_satu/ {
+        proxy_pass http://{{ private_ip_mysql }}/phpmyadmin; # ganti ke private IP phpmyadmin
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /phpmyadmin_second/ {
+        proxy_pass http://{{ private_ip_mysql_second }}/phpmyadmin; # ganti ke private IP phpmyadmin
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    # Optional: tambahkan log akses khusus jika ingin debugging
+    access_log /var/log/nginx/phpmyadmin-access.log;
+    error_log /var/log/nginx/phpmyadmin-error.log;
+}
+
+
+

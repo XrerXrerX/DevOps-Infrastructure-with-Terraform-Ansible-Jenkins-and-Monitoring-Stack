@@ -1,0 +1,26 @@
+# @format
+
+laravel_repo_branch_calc: "calculator"
+laravel_repo_url_calc: "YOUR-REPO"
+
+laravel_db_connection_calc: "mysql"
+
+#sama dengan create mysql master /slave
+
+#usernamedb untuk mysql
+mysql_new_username_calc: your_username
+mysql_new_password_calc: "your_password!"
+
+#kalau setengah jalan done gunkaan manual ip di bawah
+laravel_db_port_calc: 3306
+laravel_db_name_calc: "yourdbname" # make sure replication accept it with slave
+
+# nama file untuk di nginx available
+name_file_conf_calc: yoru file conf file
+
+laravel_server_name_calc: "yourdomain" # atau IP public
+laravel_ssl_cert_calc: "calculator.pem" # cek files pem
+laravel_ssl_key_calc: "calculator.key" # cek files key
+
+laravel_allowed_subnets_calc:
+  - "127.0.0.1" # localhost

@@ -1,0 +1,20 @@
+# @format
+---
+- name: lrvl ws - Add safe Git directory
+  shell: git config --global --add safe.directory "{{ laravel_app_path_ws }}"
+  become: false
+
+- name: lrvl ws - Pull latest code from git
+  git:
+    repo: "{{ laravel_repo_url_ws }}"
+    dest: "{{ laravel_app_path_ws }}"
+    version: "{{ laravel_repo_branch_ws }}"
+    force: yes
+    accept_hostkey: yes
+
+- name: lrvl ws - Run Laravel migrate (allow failure)
+  shell: |
+    php artisan migrate --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+    executable: /bin/bash

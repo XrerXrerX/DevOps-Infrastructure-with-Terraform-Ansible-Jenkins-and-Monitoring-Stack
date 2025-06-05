@@ -1,0 +1,16 @@
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name  {{ laravel_server_dashboard }};
+
+    ssl_certificate     /etc/ssl/laravel/{{ laravel_ssl_cert_dashboard }};
+    ssl_certificate_key /etc/ssl/laravel/{{ laravel_ssl_key_dashboard }};
+
+    location / {
+        proxy_pass http://{{ hostvars[groups['laravel_dashboard_new'][0]]['ansible_default_ipv4']['address'] }}:{{ laravel_port_dashboard }}/; # ganti ke private IP laravel
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

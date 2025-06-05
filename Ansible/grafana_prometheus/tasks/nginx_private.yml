@@ -1,0 +1,62 @@
+# @format
+
+- name: Install NGINX and Certbot
+  apt:
+    name:
+      - nginx
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+
+- name: Enable NGINX
+  systemd:
+    name: nginx
+    enabled: true
+    state: started
+
+- name: Create NGINX config for line_receive.kuryrimg.com
+  copy:
+    dest: /etc/nginx/sites-available/line_receive.kuryrimg.com
+    mode: "0644"
+    content: |
+      server {
+          listen 80;
+          server_name line-receive.kuryrimg.com;
+
+          location / {
+              proxy_pass http://localhost:5002;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+
+- name: Enable site config
+  file:
+    src: /etc/nginx/sites-available/line_receive.kuryrimg.com
+    dest: /etc/nginx/sites-enabled/line_receive.kuryrimg.com
+    state: link
+    force: yes
+
+- name: Remove default site (optional)
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Test NGINX configuration
+  command: nginx -t
+  register: nginx_test
+  failed_when: "'successful' not in nginx_test.stderr"
+
+- name: Reload NGINX
+  systemd:
+    name: nginx
+    state: reloaded
+
+- name: Obtain Let's Encrypt certificate
+  command: >
+    certbot --nginx -n --agree-tos --redirect --email it.lotto21@gmail.com
+    -d line-receive.kuryrimg.com
+  register: certbot_result
+  changed_when: "'Congratulations' in certbot_result.stdout"

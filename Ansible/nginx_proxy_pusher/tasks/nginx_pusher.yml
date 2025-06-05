@@ -1,0 +1,59 @@
+# @format
+---
+- name: pusher Configure Nginx as reverse proxy to {{ dest_folder_ssl_file_pusher }} in private subnet
+  template:
+    src: pusher_nginx_proxy_private.conf.j2
+    dest: /etc/nginx/sites-available/{{ file_nginx_pusher_conf }}
+    owner: root
+    group: root
+    mode: 0644
+
+- name: pusher Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: pusher Ensure SSL directory exists
+  file:
+    path: /etc/ssl/{{ dest_folder_ssl_file_pusher }}
+    state: directory
+    mode: "0755"
+
+- name: pusher Upload SSL certificate
+  copy:
+    src: ssl/{{ file_ssl_nginx_pusher }}.pem
+    dest: /etc/ssl/{{ dest_folder_ssl_file_pusher }}/{{ file_ssl_nginx_pusher }}.pem
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: pusher Upload SSL key
+  copy:
+    src: ssl/{{ file_ssl_nginx_pusher }}.key
+    dest: /etc/ssl/{{ dest_folder_ssl_file_pusher }}/{{ file_ssl_nginx_pusher }}.key
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: pusher Enable Nginx config
+  file:
+    src: /etc/nginx/sites-available/{{ file_nginx_pusher_conf }}
+    dest: /etc/nginx/sites-enabled/{{ file_nginx_pusher_conf }}
+    state: link
+    force: yes
+
+- name: pusher Remove default site if present in sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: pusher Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: pusher Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

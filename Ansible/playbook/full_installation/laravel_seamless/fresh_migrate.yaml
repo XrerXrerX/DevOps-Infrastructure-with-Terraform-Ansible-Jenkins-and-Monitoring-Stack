@@ -1,0 +1,9 @@
+# @format
+---
+- hosts: laravel_seamless_new
+  become: yes
+  tasks:
+    - name: migrate fresh --seed
+      include_role:
+        name: laravel_seam
+        tasks_from: migrate_fresh.yml

@@ -1,0 +1,7 @@
+# @format
+---
+# tasks file for laravel_deploy
+# - import_tasks: calculator.yml
+- import_tasks: dashboard.yml
+# - import_tasks: ws.yml
+- import_tasks: seam.yml

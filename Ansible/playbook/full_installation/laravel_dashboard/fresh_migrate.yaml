@@ -1,0 +1,9 @@
+# @format
+---
+- hosts: laravel_websocket_new
+  become: yes
+  tasks:
+    - name: migrate fresh --seed
+      include_role:
+        name: laravel_dash_v2
+        tasks_from: migrate_fresh.yml

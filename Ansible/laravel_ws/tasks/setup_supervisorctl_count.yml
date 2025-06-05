@@ -1,0 +1,31 @@
+# @format
+---
+- name: setup count spv - Ensure supervisor is installed
+  apt:
+    name: supervisor
+    state: present
+    update_cache: true
+
+- name: setup count spv - Create supervisor config for reverb
+  copy:
+    dest: "/etc/supervisor/conf.d/{{ program_name_count }}.conf"
+    content: |
+      [program:{{ program_name_count }}]
+      command={{ reverb_command_count }}
+      directory={{ laravel_app_path_ws }}
+      autostart=true
+      autorestart=true
+      stderr_logfile={{ log_path_count }}/{{ name_log_file_supervisor_count }}.err.log
+      stdout_logfile={{ log_path_count }}/{{ name_log_file_supervisor_count }}.out.log
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: setup count spv - Reread supervisor config
+  command: supervisorctl reread
+
+- name: setup count spv - Update supervisor
+  command: supervisorctl update
+
+- name: setup count spv - Check supervisor status
+  command: supervisorctl status {{ program_name_count }}

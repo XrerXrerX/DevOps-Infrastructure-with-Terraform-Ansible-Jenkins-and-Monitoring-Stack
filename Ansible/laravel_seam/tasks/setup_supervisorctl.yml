@@ -1,0 +1,66 @@
+# @format
+---
+- name: lrv seam - Ensure supervisor is installed
+  apt:
+    name: supervisor
+    state: present
+    update_cache: true
+
+- name: lrv seam - Create supervisor config for reverb
+  copy:
+    dest: "/etc/supervisor/conf.d/{{ program_name }}.conf"
+    content: |
+      [program:{{ program_name }}]
+      command={{ reverb_command }}
+      directory={{ laravel_app_path_ws }}
+      autostart=true
+      autorestart=true
+      stderr_logfile={{ log_path }}/laravel_reverb.err.log
+      stdout_logfile={{ log_path }}/laravel_reverb.out.log
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: lrv seam - Reread supervisor config
+  command: supervisorctl reread
+
+- name: lrv seam - Update supervisor
+  command: supervisorctl update
+
+- name: lrv seam - Check supervisor status
+  command: supervisorctl status {{ program_name }}
+
+- name: lrv seam - Ensure REVERB_HOST is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_HOST="
+    line: "REVERB_HOST={{ REVERB_HOST }}"
+    create: yes
+
+- name: lrv seam - Ensure REVERB_PORT is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_PORT="
+    line: "REVERB_PORT={{ REVERB_PORT }}"
+    create: yes
+
+- name: lrv seam - Ensure REVERB_SCHEME is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_SCHEME="
+    line: "REVERB_SCHEME={{ REVERB_SCHEME }}"
+    create: yes
+
+- name: lrv seam - Ensure REVERB_SERVER_HOST is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_SERVER_HOST="
+    line: "REVERB_SERVER_HOST={{ REVERB_SERVER_HOST }}"
+    create: yes
+
+- name: lrv seam - Ensure REVERB_SERVER_PORT is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_ws }}/.env"
+    regexp: "^REVERB_SERVER_PORT="
+    line: "REVERB_SERVER_PORT={{ REVERB_SERVER_PORT }}"
+    create: yes

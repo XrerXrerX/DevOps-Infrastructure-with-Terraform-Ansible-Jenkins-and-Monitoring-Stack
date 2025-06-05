@@ -1,0 +1,69 @@
+# @format
+---
+- name: lrvl ws - Install Composer dependencies (DEV)
+  command: composer update --no-interaction --prefer-dist --optimize-autoloader
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: "1"
+  when: env == 'dev'
+
+- name: lrvl ws - Install Composer dependencies (PROD)
+  command: composer install --no-interaction --prefer-dist --optimize-autoloader
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: "1"
+  when: env == 'prod'
+
+- name: lrvl ws - Generate Laravel app key (dengan timeout)
+  command: php artisan key:generate
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  async: 30
+  poll: 5
+  environment:
+    APP_ENV: production
+  when: env == 'prod'
+
+- name: lrvl ws - Generate Laravel app key (dengan timeout)
+  command: php artisan key:generate
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  async: 30
+  poll: 5
+  environment:
+    APP_ENV: local
+  when: env != 'prod'
+
+- name: lrvl ws - Create storage symbolic link
+  command: php artisan storage:link
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  environment:
+    APP_ENV: production
+  when: env == 'prod'
+
+- name: lrvl ws - Create storage symbolic link
+  command: php artisan storage:link
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  environment:
+    APP_ENV: local
+  when: env != 'prod'
+
+- name: lrvl ws - Run Laravel migrate and seed
+  command: php artisan migrate --force
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  environment:
+    APP_ENV: production
+  when: env == 'prod'
+
+- name: lrvl ws - Run Laravel migrate and seed
+  command: php artisan migrate --force
+  args:
+    chdir: "{{ laravel_app_path_ws }}"
+  environment:
+    APP_ENV: local
+  when: env != 'prod'

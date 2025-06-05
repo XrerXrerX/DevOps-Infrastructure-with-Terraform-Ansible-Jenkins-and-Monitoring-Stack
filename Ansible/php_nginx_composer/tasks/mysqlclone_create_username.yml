@@ -1,0 +1,9 @@
+# @format
+---
+#============== CREATE USER
+#check vars
+
+- name: Set MySQL user host as private DNS
+  set_fact:
+    mysql_user_host_new_slave: "{{ ansible_fqdn }}"
+  when: "'laravel_dashboard_new' in group_names"

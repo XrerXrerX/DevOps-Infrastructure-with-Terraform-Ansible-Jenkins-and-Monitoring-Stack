@@ -1,0 +1,14 @@
+# @format
+---
+- name: lrvl calc - Set permissions for Laravel directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0775"
+    recurse: yes
+  loop:
+    - "{{ laravel_app_path_calc }}"
+    - "{{ laravel_app_path_calc }}/storage"
+    - "{{ laravel_app_path_calc }}/bootstrap/cache"

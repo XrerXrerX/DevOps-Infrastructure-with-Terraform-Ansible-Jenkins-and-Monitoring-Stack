@@ -1,0 +1,43 @@
+# @format
+---
+- name: lrv dashboard - Ensure TOKEN_CALCULATOR is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_dashboard }}/.env"
+    regexp: "^TOKEN_CALCULATOR="
+    line: 'TOKEN_CALCULATOR="{{ TOKEN_CALCULATOR }}"'
+    create: yes
+
+- name: env dashboard - Ensure DOMAIN_CALC is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_dashboard }}/.env"
+    regexp: "^DOMAIN_CALC="
+    line: 'DOMAIN_CALC="http://{{ hostvars[groups[''laravel_calculator_new''][0]][''ansible_default_ipv4''][''address''] }}":8081'
+    create: yes
+
+- name: env dashboard - Ensure URL_SEAMLESS is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_dashboard }}/.env"
+    regexp: "^URL_SEAMLESS="
+    line: 'URL_SEAMLESS="http://{{ hostvars[groups[''laravel_seamless_new''][0]][''ansible_default_ipv4''][''address''] }}":8084'
+    create: yes
+
+- name: env dashboard - Ensure GET_URL is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_dashboard }}/.env"
+    regexp: "^GET_URL="
+    line: 'GET_URL="http://{{ hostvars[groups[''laravel_dashboard_new''][0]][''ansible_default_ipv4''][''address''] }}":8082'
+    create: yes
+
+- name: env dashboard - Ensure WS_URL is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_dashboard }}/.env"
+    regexp: "^WS_URL="
+    line: 'WS_URL="http://{{ hostvars[groups[''laravel_websocket_new''][0]][''ansible_default_ipv4''][''address''] }}":8083'
+    create: yes
+
+- name: lrv dashboard - Ensure TOKEN_BEARER is set in .env
+  lineinfile:
+    path: "{{ laravel_app_path_dashboard }}/.env"
+    regexp: "^TOKEN_BEARER="
+    line: 'TOKEN_BEARER="{{ TOKEN_BEARER }}"'
+    create: yes

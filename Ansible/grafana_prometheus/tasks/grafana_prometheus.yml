@@ -1,0 +1,104 @@
+# @format
+---
+- name: Install dependencies
+  become: true
+  apt:
+    name:
+      - wget
+      - unzip
+      - apt-transport-https
+      - software-properties-common
+    update_cache: yes
+
+- name: Create Prometheus user and directories
+  become: true
+  shell: |
+    useradd --no-create-home --shell /bin/false prometheus
+    mkdir -p /etc/prometheus /var/lib/prometheus
+  args:
+    creates: /etc/prometheus
+
+- name: Download and install Prometheus binaries
+  become: true
+  shell: |
+    wget https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.linux-amd64.tar.gz
+    tar xvf prometheus-2.45.0.linux-amd64.tar.gz
+    cp prometheus-2.45.0.linux-amd64/prometheus /usr/local/bin/
+    cp prometheus-2.45.0.linux-amd64/promtool /usr/local/bin/
+    cp -r prometheus-2.45.0.linux-amd64/consoles /etc/prometheus
+    cp -r prometheus-2.45.0.linux-amd64/console_libraries /etc/prometheus
+  args:
+    chdir: /tmp
+    creates: /usr/local/bin/prometheus
+
+- name: Generate Prometheus config from template
+  become: true
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
+
+- name: Set ownership for Prometheus directories
+  become: true
+  file:
+    path: "{{ item }}"
+    owner: prometheus
+    group: prometheus
+    recurse: yes
+  loop:
+    - /etc/prometheus
+    - /var/lib/prometheus
+
+- name: Create systemd service file for Prometheus
+  become: true
+  copy:
+    dest: /etc/systemd/system/prometheus.service
+    content: |
+      [Unit]
+      Description=Prometheus Monitoring
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=prometheus
+      Group=prometheus
+      Type=simple
+      ExecStart=/usr/local/bin/prometheus \
+        --config.file=/etc/prometheus/prometheus.yml \
+        --storage.tsdb.path=/var/lib/prometheus \
+        --web.console.templates=/etc/prometheus/consoles \
+        --web.console.libraries=/etc/prometheus/console_libraries \
+        --web.listen-address=0.0.0.0:9090
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd and start Prometheus
+  become: true
+  shell: |
+    systemctl daemon-reexec
+    systemctl daemon-reload
+    systemctl enable prometheus
+    systemctl start prometheus
+
+- name: Install Grafana
+  become: true
+  shell: |
+    wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+    add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+    apt update
+    apt install -y grafana
+    systemctl enable grafana-server
+    systemctl start grafana-server
+
+- name: Deploy Prometheus alert rules from file
+  become: true
+  copy:
+    src: alerts.yml
+    dest: /etc/prometheus/alerts.yml
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
+  notify: Restart Prometheus

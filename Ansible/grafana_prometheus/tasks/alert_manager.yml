@@ -1,0 +1,91 @@
+# @format
+
+- name: Create Alertmanager user and directory
+  become: true
+  shell: |
+    useradd --no-create-home --shell /bin/false alertmanager
+    mkdir -p /etc/alertmanager /var/lib/alertmanager
+  args:
+    creates: /etc/alertmanager
+
+- name: Download and install Alertmanager binaries
+  become: true
+  shell: |
+    wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+    tar xvf alertmanager-0.27.0.linux-amd64.tar.gz
+    cp alertmanager-0.27.0.linux-amd64/alertmanager /usr/local/bin/
+    cp alertmanager-0.27.0.linux-amd64/amtool /usr/local/bin/
+  args:
+    chdir: /tmp
+    creates: /usr/local/bin/alertmanager
+
+- name: Generate alertmanager.yml (Gmail + WhatsApp + line)
+  become: true
+  copy:
+    dest: /etc/alertmanager/alertmanager.yml
+    content: |
+      global:
+        smtp_smarthost: 'smtp.gmail.com:587'
+        smtp_from: 'yourgmail.com'
+        smtp_auth_username: 'yourgmail.com'
+        smtp_auth_password: 'gtyo pcbg kvew mbhl'
+        smtp_require_tls: true
+
+      route:
+        receiver: multi-channel
+        group_wait: 10s
+        group_interval: 30s
+        repeat_interval: 1h
+
+      receivers:
+        - name: multi-channel
+          email_configs:
+            - to: 'yourgmail.com'
+              send_resolved: true
+          webhook_configs:
+            - url: 'http://localhost:5001/send_whatsapp'
+              send_resolved: true
+            - url: 'http://localhost:5002/send_line_notify'
+              send_resolved: true
+    mode: "0644"
+
+- name: Set Alertmanager ownership
+  become: true
+  file:
+    path: "{{ item }}"
+    owner: alertmanager
+    group: alertmanager
+    recurse: true
+  loop:
+    - /etc/alertmanager
+    - /var/lib/alertmanager
+
+- name: Create Alertmanager systemd service
+  become: true
+  copy:
+    dest: /etc/systemd/system/alertmanager.service
+    content: |
+      [Unit]
+      Description=Prometheus Alertmanager
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=alertmanager
+      Group=alertmanager
+      Type=simple
+      ExecStart=/usr/local/bin/alertmanager \
+        --config.file=/etc/alertmanager/alertmanager.yml \
+        --storage.path=/var/lib/alertmanager \
+        --web.listen-address=:9093
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: "0644"
+
+- name: Reload systemd and start Alertmanager
+  become: true
+  shell: |
+    systemctl daemon-reload
+    systemctl enable alertmanager
+    systemctl start alertmanager

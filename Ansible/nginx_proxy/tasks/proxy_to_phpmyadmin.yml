@@ -1,0 +1,44 @@
+# @format
+---
+- name: Install nginx first!
+  apt:
+    name:
+      - nginx
+    state: present
+    update_cache: yes
+
+- name: Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Deploy Nginx config for phpmyadmin set up
+  template:
+    src: nginx_proxy.conf.j2
+    dest: /etc/nginx/sites-available/nginx_proxy.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enable phpmyadmin SSL Nginx site
+  file:
+    src: /etc/nginx/sites-available/nginx_proxy.conf
+    dest: /etc/nginx/sites-enabled/nginx_proxy.conf
+    state: link
+    force: yes
+
+- name: Remove default site if present in sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

@@ -1,0 +1,27 @@
+# @format
+---
+#============== CREATE USER
+#check vars
+- name: Create MySQL user {{ mysql_new_username_for_clone }}
+  community.mysql.mysql_user:
+    name: "{{ mysql_new_username_for_clone }}"
+    password: "{{ mysql_new_password_for_clone }}"
+    host: "{{ hostvars[groups['laravel_dashboard_new'][0]]['ansible_fqdn'] }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create MySQL user server ws {{ mysql_new_username_for_clone_ws }}
+  community.mysql.mysql_user:
+    name: "{{ mysql_new_username_for_clone_ws }}"
+    password: "{{ mysql_new_password_for_clone_ws }}"
+    host: "{{ hostvars[groups['laravel_websocket_new'][0]]['ansible_fqdn'] }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    #login_password: "{{ mysql_root_password }}"
+    # atau jika root MySQL tanpa password, bisa hilangkan login_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock

@@ -1,0 +1,59 @@
+# @format
+---
+- name: nextjs Configure Nginx as reverse proxy to {{ dest_folder_ssl }} in private subnet
+  template:
+    src: next_front_nginx_proxy_private.conf.j2
+    dest: /etc/nginx/sites-available/{{ next_front_conf }}
+    owner: root
+    group: root
+    mode: 0644
+
+- name: nextjs Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: nextjs Ensure SSL directory exists
+  file:
+    path: /etc/ssl/{{ dest_folder_ssl }}
+    state: directory
+    mode: "0755"
+
+- name: nextjs Upload SSL certificate
+  copy:
+    src: ssl/{{ file_ssl_nginx_front }}.pem
+    dest: /etc/ssl/{{ dest_folder_ssl }}/{{ file_ssl_nginx_front }}.pem
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: nextjs Upload SSL key
+  copy:
+    src: ssl/{{ file_ssl_nginx_front }}.key
+    dest: /etc/ssl/{{ dest_folder_ssl }}/{{ file_ssl_nginx_front }}.key
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: nextjs Enable Nginx config
+  file:
+    src: /etc/nginx/sites-available/{{ next_front_conf }}
+    dest: /etc/nginx/sites-enabled/{{ next_front_conf }}
+    state: link
+    force: yes
+
+- name: nextjs Remove default site if present in sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: nextjs Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: nextjs Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

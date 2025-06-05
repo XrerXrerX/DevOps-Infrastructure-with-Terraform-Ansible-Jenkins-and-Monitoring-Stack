@@ -1,0 +1,31 @@
+# @format
+
+laravel_repo_branch_seam: "seamless"
+laravel_repo_url_seam: "YOUR-REPO"
+
+laravel_db_connection_seam: "mysql"
+#hanya jalankank ketika manual
+laravel_db_port_seam: 3306
+laravel_db_name_seam: "YOURDBNAME" # make sure replication accept it with slave
+
+# nama file untuk di nginx available
+name_file_conf_seam: laravel-seamless
+
+laravel_server_name_seam: "YOURDOMAIN" # atau IP public
+laravel_ssl_cert_seam: "seamless.pem" # cek files pem
+laravel_ssl_key_seam: "seamless.key" # cek files key
+
+laravel_allowed_subnets_seam:
+  - "127.0.0.1" # localhost
+
+#supervisorctl count manage
+program_name_seam: laravel_queue_seam
+supervisor_command_seam: php artisan queue:work
+log_path_seam: "{{ laravel_app_path_seam }}/storage/logs"
+name_log_file_supervisor_seam: laravel_queue_seamless
+
+#sama dengan create mysql master /slave
+
+# CREATE USER NEW [1] /seam
+mysql_new_username_seam: YOURUSERNAME
+mysql_new_password_seam: "your_password!"

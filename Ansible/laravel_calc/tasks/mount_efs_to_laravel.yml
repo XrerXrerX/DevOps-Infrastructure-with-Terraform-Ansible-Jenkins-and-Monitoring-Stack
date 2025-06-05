@@ -1,0 +1,57 @@
+# @format
+---
+- name: Mount EFS to Laravel instance
+  hosts: laravel_servers
+  become: true
+
+  vars:
+    efs_dns: fs-xxxxxxxx.efs.ap-southeast-2.amazonaws.com # ⬅️ Ganti dengan output module.efs.efs_dns_names[0]
+    mount_point: /mnt/laravel_data
+    fstype: nfs4
+    device: "{{ efs_dns }}:/"
+
+  tasks:
+    - name: Ensure NFS client is installed
+      apt:
+        name: nfs-common
+        state: present
+        update_cache: yes
+
+    - name: Create mount point directory
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Mount EFS to mount point
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ device }}"
+        fstype: "{{ fstype }}"
+        opts: nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2
+        state: mounted
+
+    - name: Make mount persistent in fstab
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ device }}"
+        fstype: "{{ fstype }}"
+        opts: nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2
+        state: present
+
+    - name: Ensure Laravel storage folder exists in EFS mount
+      file:
+        path: "{{ mount_point }}/storage"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0775"
+
+    - name: Optional - Symlink Laravel storage to EFS
+      file:
+        src: "{{ mount_point }}/storage"
+        dest: /var/www/html/storage
+        state: link
+        force: yes

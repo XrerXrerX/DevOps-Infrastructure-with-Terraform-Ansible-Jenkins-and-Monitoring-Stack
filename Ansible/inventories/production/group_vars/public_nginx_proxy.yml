@@ -1,0 +1,32 @@
+# @format
+
+#nginx proxy laravel private [1] /get dashboard
+target_dest_nginx_dashboard: dashboard #atau get
+target_file_ssl_dashboard: dashboard
+#template
+laravel_server_dashboard: "yourdomain" # atau IP public
+laravel_ssl_cert_dashboard: "dashboard.pem" # cek files pem
+laravel_ssl_key_dashboard: "dashboard.key" # cek files key
+
+laravel_port_dashboard: 8082
+
+#nginx proxy laravel private [1] /seamless
+target_dest_nginx_seamless: seamless #atau get
+target_file_ssl_seamless: seamless
+#template
+laravel_server_seamless: "yourdomain" # atau IP public
+laravel_ssl_cert_seamless: "seamless.pem" # cek files pem
+laravel_ssl_key_seamless: "seamless.key" # cek files key
+laravel_port_seamless: 8084
+
+#nextjs
+# @format
+
+dest_ssl_file: front_next
+next_front_conf: front_next_nginx
+dest_folder_ssl: front_nginx
+file_ssl_nginx_front: next_js_front
+domain_next_front: "yourdomain" # atau IP public
+
+front_port_next: 3000 #port
+

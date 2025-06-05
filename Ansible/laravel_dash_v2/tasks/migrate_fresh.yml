@@ -1,0 +1,9 @@
+# @format
+---
+- name: laravel dashboard - Run Laravel migrate (allow failure)
+  shell: |
+    php artisan migrate:fresh --seed --force --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_dashboard }}"
+    executable: /bin/bash
+  when: env != 'prod'

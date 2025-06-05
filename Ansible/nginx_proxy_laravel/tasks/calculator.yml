@@ -1,0 +1,59 @@
+# @format
+---
+- name: calculator Configure Nginx as reverse proxy to laravel in private subnet
+  template:
+    src: calc_nginx_laravel_proxy.conf.j2
+    dest: /etc/nginx/sites-available/{{ target_dest_nginx_calculator }}
+    owner: root
+    group: root
+    mode: 0644
+
+- name: calculator Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: calculator Ensure SSL directory exists
+  file:
+    path: /etc/ssl/laravel
+    state: directory
+    mode: "0755"
+
+- name: calculator Upload SSL certificate
+  copy:
+    src: ssl/{{ target_file_ssl_calculator }}.pem
+    dest: /etc/ssl/laravel/{{ target_file_ssl_calculator }}.pem
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: calculator Upload SSL key
+  copy:
+    src: ssl/{{ target_file_ssl_calculator }}.key
+    dest: /etc/ssl/laravel/{{ target_file_ssl_calculator }}.key
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: calculator Enable Nginx config
+  file:
+    src: /etc/nginx/sites-available/{{ target_dest_nginx_calculator }}
+    dest: /etc/nginx/sites-enabled/{{ target_dest_nginx_calculator }}
+    state: link
+    force: yes
+
+- name: calculator Remove default site if present in sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: calculator Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: calculator Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

@@ -1,0 +1,84 @@
+# @format
+---
+- name: Ensure dependencies are installed
+  apt:
+    name:
+      - curl
+      - git
+      - build-essential
+    state: present
+    update_cache: yes
+
+- name: Clone NVM repository (install NVM)
+  git:
+    repo: https://github.com/nvm-sh/nvm.git
+    dest: "{{ ansible_env.HOME }}/.nvm"
+    version: v0.39.7
+  become: no
+
+- name: Ensure NVM loaded for future commands
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install --lts
+  args:
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+  become: no
+
+- name: Install PM2 globally via NVM-installed Node
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source $NVM_DIR/nvm.sh
+    nvm use --lts
+    npm install -g pm2
+  args:
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+  become: no
+
+- name: Ensure node is installed and version is correct
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source $NVM_DIR/nvm.sh
+    node -v
+  register: node_version
+  changed_when: false
+  args:
+    executable: /bin/bash
+  become: no
+
+- name: Ensure pm2 is available
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source $NVM_DIR/nvm.sh
+    pm2 --version
+  register: pm2_version
+  changed_when: false
+  args:
+    executable: /bin/bash
+  become: no
+
+- name: Ensure NVM is loaded in interactive shell (for pm2 to be available)
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: |
+      export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    insertafter: EOF
+    create: yes
+  become: no
+
+- name: Check PM2 status (pm2 ls)
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    source $NVM_DIR/nvm.sh
+    pm2 ls
+  args:
+    executable: /bin/bash
+  become: no
+  register: pm2_status
+
+- debug:
+    var: pm2_status.stdout_lines

@@ -1,0 +1,20 @@
+# @format
+nextjs_app: next-front
+user: "{{ ansible_user | default('ubuntu') }}"
+user_home: "/home/{{ user }}"
+next_app_path: "{{ user_home }}/{{ nextjs_app }}"
+next_repo_url: "YOUR-REPO"
+next_repo_branch: "your branch"
+nvm_dir: "{{ ansible_env.HOME }}/.nvm"
+
+pm2_name: "next-front"
+node_command: >-
+  {% if env == 'prod' %}
+  pm2 start npm --name "{{ pm2_name }}" -- run preview
+  {% else %}
+  pm2 start npm --name "{{ pm2_name }}" -- run dev
+  {% endif %}
+
+REACT_APP_WS_KEY: "yoursecretkey"
+REACT_APP_WS_PORT: "your port "
+REACT_APP_COMPANY_KEY: "company_key"

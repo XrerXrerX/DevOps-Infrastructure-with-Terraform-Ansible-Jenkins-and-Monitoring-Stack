@@ -1,0 +1,31 @@
+# @format
+---
+# handlers file for mysql_replication
+- name: Restart mysql
+  service:
+    name: mysql
+    state: restarted
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded
+
+- name: Test nginx configuration before restart
+  ansible.builtin.command: nginx -t
+  register: nginx_test
+  changed_when: false
+  failed_when: nginx_test.rc != 0
+
+- name: Restart nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted
+
+- name: Restart php-fpm
+  service:
+    name: php{{ php_fpm_version }}-fpm
+    state: restarted

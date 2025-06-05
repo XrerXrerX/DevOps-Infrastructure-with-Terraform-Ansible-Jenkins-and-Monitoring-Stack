@@ -1,0 +1,18 @@
+# @format
+---
+- name: Ensure Nginx installed
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

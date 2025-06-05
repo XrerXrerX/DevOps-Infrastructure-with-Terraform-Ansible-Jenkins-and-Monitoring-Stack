@@ -1,0 +1,9 @@
+# @format
+---
+- name: lrv calc - Run Laravel migrate (allow failure)
+  shell: |
+    php artisan migrate:fresh --seed --force --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+    executable: /bin/bash
+  when: env != 'prod'

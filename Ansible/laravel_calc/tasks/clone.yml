@@ -1,0 +1,22 @@
+# @format
+---
+- name: lrv calc - Ensure git is installed
+  apt:
+    name: git
+    state: present
+    update_cache: yes
+
+- name: lrv calc - Ensure {{ laravel_app_path_calc }} is marked as safe.directory for git
+  command: git config --global --add safe.directory {{ laravel_app_path_calc }}
+  become: yes
+  become_user: root
+  args:
+    creates: /root/.gitconfig
+
+- name: lrv calc - Clone Laravel repo
+  git:
+    repo: "{{ laravel_repo_url_calc }}"
+    dest: "{{ laravel_app_path_calc }}"
+    update: yes
+    force: yes
+    version: "{{ laravel_repo_branch_calc }}"

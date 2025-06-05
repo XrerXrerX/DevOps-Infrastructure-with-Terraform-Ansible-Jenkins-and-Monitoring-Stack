@@ -1,0 +1,9 @@
+# @format
+---
+- hosts: nextjs_frontend
+  become: yes
+  tasks:
+    - name: pull repo
+      include_role:
+        name: nextjs_front
+        tasks_from: pull_repo_next.yml

@@ -1,0 +1,42 @@
+# @format
+---
+- name: Format & Mount Laravel EBS Disk
+  hosts: laravel_1
+  become: true
+  vars:
+    mount_device: /dev/nvme1n1 # Bisa juga /dev/xvdf tergantung AMI
+    mount_point: /mnt/laravel_data
+    filesystem: ext4
+
+  tasks:
+    - name: Create mount point
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: "0755"
+
+    - name: Check if disk is already formatted
+      command: lsblk -f {{ mount_device }}
+      register: disk_info
+
+    - name: Format disk if not already formatted
+      filesystem:
+        fstype: "{{ filesystem }}"
+        dev: "{{ mount_device }}"
+      when: '"{{ filesystem }}" not in disk_info.stdout'
+
+    - name: Mount disk to {{ mount_point }}
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ mount_device }}"
+        fstype: "{{ filesystem }}"
+        opts: defaults,nofail
+        state: mounted
+
+    - name: Ensure mount is persistent on reboot
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ mount_device }}"
+        fstype: "{{ filesystem }}"
+        opts: defaults,nofail
+        state: present

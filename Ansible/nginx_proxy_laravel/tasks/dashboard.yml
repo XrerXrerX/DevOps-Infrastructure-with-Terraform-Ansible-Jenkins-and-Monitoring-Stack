@@ -1,0 +1,59 @@
+# @format
+---
+- name: daashboard Configure Nginx as reverse proxy to laravel in private subnet
+  template:
+    src: dashboard_nginx_laravel_proxy.conf.j2
+    dest: /etc/nginx/sites-available/{{ target_dest_nginx_dashboard }}
+    owner: root
+    group: root
+    mode: 0644
+
+- name: daashboard Ensure Nginx service is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: daashboard Ensure SSL directory exists
+  file:
+    path: /etc/ssl/laravel
+    state: directory
+    mode: "0755"
+
+- name: daashboard Upload SSL certificate
+  copy:
+    src: ssl/{{ target_file_ssl_dashboard }}.pem
+    dest: /etc/ssl/laravel/{{ target_file_ssl_dashboard }}.pem
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: daashboard Upload SSL key
+  copy:
+    src: ssl/{{ target_file_ssl_dashboard }}.key
+    dest: /etc/ssl/laravel/{{ target_file_ssl_dashboard }}.key
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: daashboard Enable Nginx config
+  file:
+    src: /etc/nginx/sites-available/{{ target_dest_nginx_dashboard }}
+    dest: /etc/nginx/sites-enabled/{{ target_dest_nginx_dashboard }}
+    state: link
+    force: yes
+
+- name: daashboard Remove default site if present in sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: daashboard Test Nginx configuration
+  command: nginx -t
+  register: nginx_test_result
+  failed_when: nginx_test_result.rc != 0
+
+- name: daashboard Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

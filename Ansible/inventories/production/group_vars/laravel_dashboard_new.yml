@@ -1,0 +1,37 @@
+# @format
+
+laravel_repo_branch_dashboard: "back-mini-get"
+laravel_repo_url_dashboard: "YOUR-REPO"
+
+laravel_db_connection_dashboard_get: "mysql_get"
+#hanya jalankank ketika manual
+laravel_db_port_dashboard: 3306
+laravel_db_name_dashboard: "yourdbname" # make sure replication accept it with slave
+
+#nama file untuk di nginx available
+name_file_conf_dashboard: laravel-dashboard
+
+laravel_server_name_dashboard: "yourdomain" # atau IP public
+laravel_ssl_cert_dashboard: "dashboard.pem" # cek files pem
+laravel_ssl_key_dashboard: "dashboard.key" # cek files key
+
+laravel_allowed_subnets_dashboard:
+  - "10.0.1.117" #bastion private IP
+  - "10.0.1.187" #nginx private IP
+  - "127.0.0.1" # localhost
+
+#supervisorctl count manage
+program_name_get: count_laravel
+supervisor_command_get: php artisan queue:work
+log_path_get: "{{ laravel_app_path_dashboard }}/storage/logs"
+name_log_file_supervisor_get: laravel_queue_get
+
+#sama dengan create mysql master /slave
+
+#username post
+mysql_new_username_dashboard_post: your_username
+mysql_new_password_dashboard_post: "your_password!"
+
+#username get
+mysql_new_username_dashboard_get: your_username
+mysql_new_password_dashboard_get: "your_password!"

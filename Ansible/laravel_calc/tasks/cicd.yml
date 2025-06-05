@@ -1,0 +1,13 @@
+# @format
+---
+# roles/playbook/laravel/tasks/migrate.yaml
+- name: Add safe Git directory
+  shell: git config --global --add safe.directory "{{ laravel_app_path_calc }}"
+  become: false
+
+- name: Run Laravel migrate (allow failure)
+  shell: |
+    php artisan test --color --no-interaction --ansi || true
+  args:
+    chdir: "{{ laravel_app_path_calc }}"
+    executable: /bin/bash

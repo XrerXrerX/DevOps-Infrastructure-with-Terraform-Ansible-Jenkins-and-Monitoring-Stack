@@ -1,0 +1,31 @@
+# @format
+---
+#ATUR HOST DENGAN GROUPING
+- name: collect fact for bastion host
+  hosts:
+    - bastion_host_phpmyadmin
+    - laravel_dashboard_new
+    - laravel_websocket_new
+    - laravel_calculator_new
+    - laravel_seamless_new
+    - nextjs_frontend
+    - jenkins_prometheus
+    - public_nginx_proxy
+  gather_facts: yes
+  tasks:
+    - name: Tampilkan IP & FQDN Laravel Host
+      debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "FQDN: {{ ansible_fqdn }}"
+          - "Private IP: {{ ansible_default_ipv4.address }}"
+          - "DNS: {{ ansible_dns.nameservers | default('N/A') }}"
+
+# #jalankan laravel jobs queue
+- hosts: laravel_dashboard_new
+  become: yes
+  tasks:
+    - name: laravel dashboard config queue work
+      include_role:
+        name: laravel_dash_v2
+        tasks_from: setup_supervisorctl_queue_get.yml

@@ -1,0 +1,20 @@
+# @format
+---
+- name: lrv dashboard - Ensure git is installed
+  apt:
+    name: git
+    state: present
+    update_cache: yes
+
+- name: lrv dashboard - Ensure {{ laravel_app_path_dashboard }} is marked as safe.directory for git
+  command: git config --global --add safe.directory {{ laravel_app_path_dashboard }}
+  become: false
+
+- name: lrv dashboard - Clone Laravel repo
+  git:
+    repo: "{{ laravel_repo_url_dashboard }}"
+    dest: "{{ laravel_app_path_dashboard }}"
+    update: yes
+    force: yes
+    version: "{{ laravel_repo_branch_dashboard }}"
+  become: false
