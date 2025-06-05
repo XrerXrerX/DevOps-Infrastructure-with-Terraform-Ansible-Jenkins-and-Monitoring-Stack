@@ -69,21 +69,15 @@ graph TD
   Jenkins --> all_private
 ```
 
-### Modules:
+## 🚀 Infrastructure Provisioning with Terraform
 
-- Full VPC Module (Internet Gateway, NAT Gateway, and Route Tables)
-- EC2 Instances are isolated between Private and Public Subnets
-- Static IP mapping using Elastic IPs
-- Granular Security Group rules for each service
-- Automatic outputs (e.g., `bastion_public_ip`, `laravel_private_ip`, etc.)
+### ✅ Key Features
 
-## 📌 Fitur Terraform
-
-- Full VPC Module (Internet Gateway, NAT Gateway, Route Tables)
-- EC2 Instance isolate between Subnet Private and Public
-- Pemetaan IP statik via Elastic IP
-- Security Group dengan aturan granular per layanan
-- Output otomatis (bastion_public_ip, laravel_private_ip, dsb.)
+- 🏗 Full VPC Module (Internet Gateway, NAT Gateway, Route Tables)
+- 🔐 EC2 instances isolated between private and public subnets
+- 📡 Static IPs via Elastic IP
+- 🔒 Granular Security Group rules per service
+- 📤 Automatic outputs (e.g. `bastion_public_ip`, `laravel_private_ip`, etc.)
 
 ### EC2 Roles:
 
@@ -99,52 +93,57 @@ graph TD
 
 ---
 
-## 🚧 Configuration Management with Ansible in other folder check it out !
+## ⚙️ Configuration Management with Ansible
 
-Ansible is bootstrapped on the bastion host to manage:
+All EC2 instances are provisioned automatically using **Ansible** from the Bastion Host.
 
-- Laravel application dependencies
-- Web server configurations
-- Database replication setup
-- Jenkins Installation
-- Monitoring setup (grafana , prometheus , node exporter, alert manager)
+### Provisioned with:
 
-> The `bastion` instance is pre-provisioned with Ansible during user-data execution.
+- `.env` environment configs
+- Nginx + PHP-FPM setup for Laravel
+- Database replication (Master-Slave)
+- Node Exporter installed for all EC2
+- Jenkins setup with webhook support
+- Prometheus & Alertmanager deployment
+- Grafana + preloaded dashboards
+
+📁 Check `ansible/` directory in this repository for details.
 
 ---
 
 ## ♻️ CI/CD with Jenkins
 
-The `jenkins_prometheus` instance hosts Jenkins, which is accessible from trusted IPs only.
+Jenkins is deployed on a public subnet with strict access via security group.
 
-### Pipeline Features:
+### Supports:
 
-- Auto build & deploy Laravel and Frontend apps
-- Webhook integration with GitHub/GitLab
-- Environment-based deployment using tags/branches
+- Auto build & deploy Laravel and Next.js with ansible
+- Webhook triggers via GitHub
+- Branch/tag-based deployment
+- SSH jump via Bastion for private EC2 delivery
 
 ---
 
-## 🔍 Monitoring Stack
+## 📈 Monitoring Stack
 
-### Prometheus + Node Exporter
+### 🔍 Prometheus + Node Exporter
 
-- EC2 metrics (CPU, memory, network)
-- Custom application metrics (via exporters)
+- CPU, Memory, Disk for all EC2
+- Laravel + MySQL metrics via exporters
 
-### Grafana
+### 📊 Grafana
 
-- Dashboards for Laravel, MySQL, and EC2s
+- Prebuilt dashboards
+- Visualizes app uptime, DB replication, usage
 
-### Alertmanager
+### 🔔 Alertmanager
 
-- Custom alert rules for:
+- Configurable alerts for:
+  - High CPU/memory
+  - Service downtime
+  - DB replication lag
 
-  - MySQL replication lag
-  - Instance down
-  - High memory/CPU usage
-
-Alerts are routed via Slack/Email based on severity.
+> Alerts routed via line, whatsapp, or Email.
 
 ---
 
@@ -169,11 +168,12 @@ terraform apply tfplan
 
 ---
 
-## 💡 Notes
+## 🔐 Private App Communication Rules
 
-- Frontend (Next.js) communicates only with Laravel Dashboard & Laravel Websocket
-- Laravel Calculator & Seamless are private, and communicate only with Laravel Dashboard
-- All Laravel & MySQL servers are **private subnet only**
+- Next.js only communicates with Laravel Dashboard and Websocket
+- Laravel Calculator & Seamless only talk to Laravel Dashboard
+- MySQL is only accessible from Laravel apps (private subnet)
+- All communication from frontend is reverse-proxied via public Nginx
 
 ---
 
