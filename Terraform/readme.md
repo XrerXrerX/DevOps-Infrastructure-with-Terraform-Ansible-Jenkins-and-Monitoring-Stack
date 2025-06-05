@@ -75,7 +75,7 @@ terraform apply -auto-approve
 
 Here is the proof of successful Terraform provisioning:
 
-![Terraform Apply Success](./assets/terraform-apply-success.pnjpg)
+![Terraform Apply Success](./assets/terraform-apply-success.jpg)
 
 ## 🌍 Output Example
 
