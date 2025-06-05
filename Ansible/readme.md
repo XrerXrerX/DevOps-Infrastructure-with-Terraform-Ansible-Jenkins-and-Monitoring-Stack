@@ -161,7 +161,7 @@ ansible-playbook -i inventories/production/all_host.ini playbook/full_installati
 ## 📊 Grafana Dashboards for Laravel & MySQL
 
 <p align="center">
-  <img src="./assets/grafana.png" alt="Grafana Laravel Dashboard" width="700"/>
+  <img src="./assets/grafana.jpg" alt="Grafana Laravel Dashboard" width="700"/>
 </p>
 
 ---
@@ -169,7 +169,7 @@ ansible-playbook -i inventories/production/all_host.ini playbook/full_installati
 ## 📡 Prometheus Target Status
 
 <p align="center">
-  <img src="./assets/prometheus.png" alt="Prometheus Targets" width="700"/>
+  <img src="./assets/prometheus.jpg" alt="Prometheus Targets" width="700"/>
 </p>
 
 ---
@@ -179,7 +179,7 @@ ansible-playbook -i inventories/production/all_host.ini playbook/full_installati
 ### 🔔 Email via Gmail
 
 <p align="center">
-  <img src="./assets/gmail_alert.png" alt="Alert via Gmail" width="500"/>
+  <img src="./assets/gmail_alert.jpg" alt="Alert via Gmail" width="500"/>
 </p>
 
 ---
@@ -187,7 +187,7 @@ ansible-playbook -i inventories/production/all_host.ini playbook/full_installati
 ### 💬 WhatsApp Notification
 
 <p align="center">
-  <img src="./assets/whatsapp_alert.png" alt="Alert via WhatsApp" width="500"/>
+  <img src="./assets/whatsapp_alert.jpg" alt="Alert via WhatsApp" width="500"/>
 </p>
 
 ---
@@ -195,5 +195,5 @@ ansible-playbook -i inventories/production/all_host.ini playbook/full_installati
 ### 📱 LINE Notification
 
 <p align="center">
-  <img src="./assets/line_alert.png" alt="Alert via LINE" width="500"/>
+  <img src="./assets/line_alert.jpg" alt="Alert via LINE" width="500"/>
 </p>
