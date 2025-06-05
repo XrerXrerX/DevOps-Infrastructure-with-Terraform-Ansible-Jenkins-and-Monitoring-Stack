@@ -71,6 +71,12 @@ terraform apply -auto-approve
 
 ---
 
+## ✅ Terraform Apply Result
+
+Here is the proof of successful Terraform provisioning:
+
+![Terraform Apply Success](./assets/terraform-apply-success.pnjpg)
+
 ## 🌍 Output Example
 
 After `terraform apply`, Terraform will output critical values:
