@@ -1,6 +1,14 @@
 <!-- @format -->
 
-# DevOps Infrastructure with Terraform, Jenkins, Ansible, and Monitoring Stack
+# 🛡️ Secure & Optimized AWS Infrastructure with Terraform: Private Subnet Isolation, NAT Routing, and Modular DevOps Stack
+
+[![Terraform](https://img.shields.io/badge/IaC-Terraform-623CE4?logo=terraform)](https://www.terraform.io/)
+[![AWS](https://img.shields.io/badge/AWS-Deployed-yellow?logo=amazon-aws)](https://aws.amazon.com/)
+[![Security](https://img.shields.io/badge/Security-Granular%20SG%20%2F%20Bastion%20SSH-green)]()
+[![Subnet Speed](https://img.shields.io/badge/Subnet-Private%20Optimized-blueviolet)]()
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+> ⚙️ This Terraform-based infrastructure enforces **private subnet isolation**, configures **secure NAT routing**, and applies **granular security groups** to ensure optimized and safe communication across tiers of Laravel and Next.js workloads.
 
 ## ✨ Overview
 
